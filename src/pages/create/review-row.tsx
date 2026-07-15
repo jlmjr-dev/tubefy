@@ -1,8 +1,9 @@
-import { ArrowRight, Check, ChevronDown } from "lucide-react"
+import { ArrowRight, Check, ChevronDown, VideoOff } from "lucide-react"
 
 import { CoverArt } from "@/components/cover-art"
 import { Eyebrow } from "@/components/eyebrow"
 import type { Mapping, VideoCandidate } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 /** One alternate-video card in the inline remap panel. */
 function CandidateCard({
@@ -77,15 +78,28 @@ export function ReviewRow({
 }) {
   const { track } = mapping
   const chosen = mapping.candidates[mapping.chosenIndex]
+  const noMatch = !chosen
   const review = mapping.confidence === "review"
-  const confColor = review ? "var(--amber)" : "var(--spotify)"
-  const confBg = review
-    ? "color-mix(in oklch, var(--amber) 12%, transparent)"
-    : "color-mix(in oklch, var(--spotify) 12%, transparent)"
+  const badgeColor = noMatch
+    ? "var(--youtube)"
+    : review
+      ? "var(--amber)"
+      : "var(--spotify)"
+  const badgeBg = noMatch
+    ? "color-mix(in oklch, var(--youtube) 12%, transparent)"
+    : review
+      ? "color-mix(in oklch, var(--amber) 12%, transparent)"
+      : "color-mix(in oklch, var(--spotify) 12%, transparent)"
+  const badgeLabel = noMatch ? "No match" : review ? "Check match" : "Strong match"
 
   return (
     <div className="bg-panel-row border border-[var(--border-subtle)] [animation:fadeUp_0.4s_both]">
-      <div className="flex flex-wrap items-center gap-[clamp(10px,1.8vw,20px)] p-[clamp(12px,1.5vw,16px)]">
+      <div
+        className={cn(
+          "flex flex-wrap items-center gap-[clamp(10px,1.8vw,20px)] p-[clamp(12px,1.5vw,16px)]",
+          noMatch && "opacity-55"
+        )}
+      >
         <span className="font-heading text-fg-fainter flex-none text-[15px]">
           {String(index + 1).padStart(2, "0")}
         </span>
@@ -113,36 +127,52 @@ export function ReviewRow({
           <ArrowRight className="size-[18px] text-[oklch(0.55_0.06_277)]" />
           <span
             className="px-[7px] py-[3px] text-[8px] font-semibold tracking-[0.14em] whitespace-nowrap uppercase"
-            style={{ color: confColor, background: confBg }}
+            style={{ color: badgeColor, background: badgeBg }}
           >
-            {review ? "Check match" : "Strong match"}
+            {badgeLabel}
           </span>
         </div>
 
         <div className="flex min-w-[210px] flex-1 basis-[250px] items-center gap-3">
-          <div className="relative h-[40px] w-[64px] flex-none">
-            <CoverArt
-              seed={chosen?.channelTitle || chosen?.title || "yt"}
-              src={chosen?.thumbnailUrl}
-              className="h-[40px] w-[64px]"
-              monogramClassName="text-[9px]"
-            />
-            <span className="absolute top-[3px] left-1 text-[7px] font-semibold tracking-[0.14em] text-[oklch(0.85_0_0/0.6)]">
-              ▶ YT
-            </span>
-          </div>
-          <div className="min-w-0">
-            <div className="truncate text-[12px] font-semibold tracking-[0.02em]">
-              {chosen?.title ?? "No match found"}
-            </div>
-            <div className="text-fg-faint mt-[3px] truncate text-[11px]">
-              {chosen
-                ? [chosen.channelTitle, chosen.durationLabel, chosen.viewCountLabel]
+          {noMatch ? (
+            <>
+              <div className="bg-panel-inset flex h-[40px] w-[64px] flex-none items-center justify-center border border-[var(--border-subtle)]">
+                <VideoOff className="text-fg-fainter size-[18px]" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-fg-muted truncate text-[12px] font-semibold">
+                  No match found
+                </div>
+                <div className="text-fg-faint mt-[3px] text-[11px]">
+                  This track will be skipped
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="relative h-[40px] w-[64px] flex-none">
+                <CoverArt
+                  seed={chosen.channelTitle || chosen.title}
+                  src={chosen.thumbnailUrl}
+                  className="h-[40px] w-[64px]"
+                  monogramClassName="text-[9px]"
+                />
+                <span className="absolute top-[3px] left-1 text-[7px] font-semibold tracking-[0.14em] text-[oklch(0.85_0_0/0.6)]">
+                  ▶ YT
+                </span>
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-[12px] font-semibold tracking-[0.02em]">
+                  {chosen.title}
+                </div>
+                <div className="text-fg-faint mt-[3px] truncate text-[11px]">
+                  {[chosen.channelTitle, chosen.durationLabel, chosen.viewCountLabel]
                     .filter(Boolean)
-                    .join(" · ")
-                : ""}
-            </div>
-          </div>
+                    .join(" · ")}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {mapping.candidates.length > 1 ? (

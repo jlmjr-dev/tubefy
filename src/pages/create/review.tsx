@@ -34,8 +34,10 @@ export function Review() {
 
   if (mappings.length === 0) return <Navigate to="/create" replace />
 
-  const strongCount = mappings.filter((m) => m.confidence !== "review").length
-  const reviewCount = mappings.filter((m) => m.confidence === "review").length
+  const matched = mappings.filter((m) => m.candidates.length > 0)
+  const strongCount = matched.filter((m) => m.confidence !== "review").length
+  const reviewCount = matched.filter((m) => m.confidence === "review").length
+  const noMatchCount = mappings.length - matched.length
 
   const confirm = async () => {
     if (creating) return
@@ -78,6 +80,9 @@ export function Review() {
             <div className="flex gap-4">
               <Stat value={strongCount} label="Strong" color="var(--spotify)" />
               <Stat value={reviewCount} label="To check" color="var(--amber)" />
+              {noMatchCount > 0 ? (
+                <Stat value={noMatchCount} label="No match" color="var(--youtube)" />
+              ) : null}
             </div>
             <button
               type="button"
@@ -100,6 +105,13 @@ export function Review() {
       {error ? (
         <div className="text-youtube px-[clamp(24px,5vw,80px)] pb-2 text-[12px]">
           {error}
+        </div>
+      ) : null}
+      {noMatchCount > 0 ? (
+        <div className="text-fg-faint px-[clamp(24px,5vw,80px)] pb-2 text-[12px] leading-[1.5]">
+          {noMatchCount} track{noMatchCount > 1 ? "s" : ""} couldn&rsquo;t be matched and
+          will be skipped. This usually means YouTube&rsquo;s daily search limit was
+          reached, which resets each day.
         </div>
       ) : null}
       <div className="flex-1 overflow-auto px-[clamp(24px,5vw,80px)] pt-[clamp(4px,1vw,8px)] pb-[clamp(78px,10vh,106px)]">
