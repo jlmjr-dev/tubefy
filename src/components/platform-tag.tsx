@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils"
+import type { Platform } from "@/lib/types"
 
-export type Platform = "spotify" | "youtube"
+export type { Platform }
 
 const META: Record<Platform, { color: string; label: string }> = {
   spotify: { color: "var(--spotify)", label: "Spotify" },
