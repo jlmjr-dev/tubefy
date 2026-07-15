@@ -48,6 +48,7 @@ export function PlaylistCard({
         src={thumbnailUrl}
         className={aspectClassName}
         monogramClassName={monogramClassName}
+        revealOnHover
       >
         {topLeft ? <div className="absolute top-3 left-3">{topLeft}</div> : null}
         {overlay ? (
