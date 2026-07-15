@@ -40,7 +40,7 @@ export function Review() {
   const noMatchCount = mappings.length - matched.length
 
   const confirm = async () => {
-    if (creating) return
+    if (creating || matched.length === 0) return
     setCreating(true)
     setError(null)
     try {
@@ -88,8 +88,11 @@ export function Review() {
             <button
               type="button"
               onClick={confirm}
-              disabled={creating}
-              className="bg-indigo text-indigo-on inline-flex h-[46px] items-center gap-2.5 px-6 text-[11px] font-semibold tracking-[0.2em] uppercase transition-[filter,transform] hover:brightness-110 active:translate-y-px disabled:opacity-70"
+              disabled={creating || matched.length === 0}
+              title={
+                matched.length === 0 ? "No matched videos to create a playlist from" : undefined
+              }
+              className="bg-indigo text-indigo-on inline-flex h-[46px] items-center gap-2.5 px-6 text-[11px] font-semibold tracking-[0.2em] uppercase transition-[filter,transform] hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
             >
               {creating ? (
                 "Creating…"
