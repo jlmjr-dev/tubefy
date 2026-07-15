@@ -8,7 +8,7 @@ import { ConnectCard } from "@/pages/login/connect-card"
 /** The center bridge between the two cards; lights up indigo when both connect. */
 function Bridge({ both }: { both: boolean }) {
   return (
-    <div className="flex flex-none items-center justify-center px-[clamp(6px,1.4vw,16px)]">
+    <div className="flex flex-none items-center justify-center px-[clamp(6px,1.4vw,16px)] py-3 md:py-0">
       <div
         className="bg-background flex size-10 rotate-45 items-center justify-center transition-[border-color,box-shadow] duration-500"
         style={{
@@ -45,7 +45,7 @@ export function Login() {
         </div>
       </div>
 
-      <div className="flex w-full max-w-[820px] flex-wrap items-stretch justify-center">
+      <div className="flex w-full max-w-[820px] flex-col items-stretch justify-center md:flex-row">
         <ConnectCard
           platform="spotify"
           auth={spotify}

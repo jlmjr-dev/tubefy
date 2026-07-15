@@ -58,7 +58,7 @@ export function ConnectCard({
 
   return (
     <div
-      className="bg-panel relative flex min-w-[270px] flex-1 basis-[300px] flex-col gap-[18px] overflow-hidden p-[clamp(22px,3vw,30px)] transition-[border-color,box-shadow] duration-500"
+      className="bg-panel relative flex w-full flex-col gap-[18px] overflow-hidden p-[clamp(22px,3vw,30px)] transition-[border-color,box-shadow] duration-500 md:w-auto md:min-w-[270px] md:flex-1 md:basis-[300px]"
       style={
         {
           "--brand": meta.brand,
