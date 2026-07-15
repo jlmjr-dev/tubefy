@@ -63,22 +63,6 @@ export function Player() {
     setAllUnplayable(false)
   }, [])
 
-  const {
-    containerRef,
-    ready,
-    playing,
-    currentTime,
-    duration,
-    load,
-    toggle,
-    seekTo,
-    setVolume,
-  } = useYouTubePlayer({
-    onEnded: handleEnded,
-    onError: handleError,
-    onPlay: handlePlay,
-  })
-
   // Reset the queue position when the playlist changes (render-phase reset).
   if (listId !== trackedList) {
     setTrackedList(listId)
@@ -88,9 +72,21 @@ export function Player() {
   const current = queue[index]
   const currentVideoId = current?.videoId
 
-  useEffect(() => {
-    if (ready && currentVideoId) load(currentVideoId)
-  }, [ready, currentVideoId, load])
+  const {
+    containerRef,
+    ready,
+    playing,
+    currentTime,
+    duration,
+    toggle,
+    seekTo,
+    setVolume,
+  } = useYouTubePlayer({
+    videoId: currentVideoId,
+    onEnded: handleEnded,
+    onError: handleError,
+    onPlay: handlePlay,
+  })
 
   const showChrome = useCallback(() => {
     setChromeVisible(true)

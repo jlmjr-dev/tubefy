@@ -9,7 +9,6 @@ interface UseYouTubePlayer {
   playing: boolean
   currentTime: number
   duration: number
-  load: (videoId: string) => void
   toggle: () => void
   seekTo: (seconds: number) => void
   setVolume: (volume: number) => void
@@ -17,15 +16,20 @@ interface UseYouTubePlayer {
 
 /**
  * Wraps a single YT.Player instance behind custom controls: hidden native UI,
- * play/pause/seek/volume methods, polled progress, and an `onEnded` callback for
- * auto-advancing a queue. Keeps one player for its lifetime (swap videos via
- * `load`) and tears it down on unmount.
+ * play/pause/seek/volume methods, polled progress, and onEnded/onError/onPlay
+ * callbacks. The player is created only once we have a `videoId`, and that first
+ * video is loaded *synchronously inside onReady* — loading it later (e.g. from a
+ * separate effect) makes YouTube treat it as a programmatic play and block
+ * autoplay. Subsequent track changes load fine once something is already
+ * playing. Keeps one player for its lifetime and tears it down on unmount.
  */
 export function useYouTubePlayer({
+  videoId,
   onEnded,
   onError,
   onPlay,
 }: {
+  videoId?: string
   onEnded?: () => void
   onError?: (code: number) => void
   onPlay?: () => void
@@ -33,14 +37,17 @@ export function useYouTubePlayer({
   const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<YTPlayer | null>(null)
   const intervalRef = useRef<number | null>(null)
+  const videoIdRef = useRef(videoId)
+  const loadedRef = useRef<string | undefined>(undefined)
   const onEndedRef = useRef(onEnded)
   const onErrorRef = useRef(onError)
   const onPlayRef = useRef(onPlay)
   useEffect(() => {
+    videoIdRef.current = videoId
     onEndedRef.current = onEnded
     onErrorRef.current = onError
     onPlayRef.current = onPlay
-  }, [onEnded, onError, onPlay])
+  }, [videoId, onEnded, onError, onPlay])
 
   const [ready, setReady] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -65,10 +72,15 @@ export function useYouTubePlayer({
     }, 250)
   }, [])
 
+  // Create the player once we have a video. `hasVideo` flips false->true a single
+  // time (when the queue loads) and then stays true as the videoId changes, so
+  // this effect runs creation exactly once and only tears down on unmount.
+  const hasVideo = Boolean(videoId)
   useEffect(() => {
+    if (!hasVideo) return
     let cancelled = false
     loadYouTubeIframeApi().then((YT) => {
-      if (cancelled || !containerRef.current) return
+      if (cancelled || !containerRef.current || playerRef.current) return
       playerRef.current = new YT.Player(containerRef.current, {
         width: "100%",
         height: "100%",
@@ -83,7 +95,14 @@ export function useYouTubePlayer({
         },
         events: {
           onReady: () => {
-            if (!cancelled) setReady(true)
+            if (cancelled) return
+            setReady(true)
+            // Load the first video here (synchronously) so autoplay is allowed.
+            const id = videoIdRef.current
+            if (id) {
+              playerRef.current?.loadVideoById(id)
+              loadedRef.current = id
+            }
           },
           onStateChange: (event) => {
             const state = window.YT!.PlayerState
@@ -124,13 +143,18 @@ export function useYouTubePlayer({
         }
       }
     }
-  }, [startPolling, stopPolling])
+  }, [hasVideo, startPolling, stopPolling])
 
-  const load = useCallback((videoId: string) => {
-    playerRef.current?.loadVideoById(videoId)
-    setCurrentTime(0)
-    setDuration(0)
-  }, [])
+  // Swap to a new video when the queue advances. Safe to do from an effect here
+  // because something is already playing by this point (not the initial load).
+  useEffect(() => {
+    if (ready && videoId && loadedRef.current !== videoId) {
+      playerRef.current?.loadVideoById(videoId)
+      loadedRef.current = videoId
+      setCurrentTime(0)
+      setDuration(0)
+    }
+  }, [ready, videoId])
 
   const toggle = useCallback(() => {
     const player = playerRef.current
@@ -151,5 +175,5 @@ export function useYouTubePlayer({
     playerRef.current?.setVolume(volume)
   }, [])
 
-  return { containerRef, ready, playing, currentTime, duration, load, toggle, seekTo, setVolume }
+  return { containerRef, ready, playing, currentTime, duration, toggle, seekTo, setVolume }
 }
