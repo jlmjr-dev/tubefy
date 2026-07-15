@@ -74,8 +74,14 @@ async function getClient(): Promise<TokenClient> {
   return tokenClient
 }
 
+// The GIS token client is a shared singleton whose callback is reassigned per
+// request, so two concurrent requests would clobber each other's callback and
+// leave one promise hanging forever. Serialize them behind one in-flight promise.
+let pendingToken: Promise<TokenResponse> | null = null
+
 function requestToken(prompt: "" | "consent"): Promise<TokenResponse> {
-  return new Promise((resolve, reject) => {
+  if (pendingToken) return pendingToken
+  pendingToken = new Promise<TokenResponse>((resolve, reject) => {
     getClient()
       .then((client) => {
         client.callback = (response) => {
@@ -87,7 +93,10 @@ function requestToken(prompt: "" | "consent"): Promise<TokenResponse> {
         client.requestAccessToken({ prompt })
       })
       .catch(reject)
+  }).finally(() => {
+    pendingToken = null
   })
+  return pendingToken
 }
 
 /** Interactive connect: prompts the account picker / consent the first time. */
@@ -113,8 +122,10 @@ export async function getYouTubeToken(): Promise<string> {
 }
 
 export function isYouTubeConnected(): boolean {
-  const token = loadToken()
-  return Boolean(token && token.expiresAt > Date.now())
+  // Optimistic, like Spotify's refresh-token check: a stored token is renewable
+  // via a silent GIS request, so treat its presence (not its freshness) as
+  // connected. getYouTubeToken() drives the actual renew / disconnect-on-failure.
+  return loadToken() !== null
 }
 
 export function disconnectYouTube(): void {

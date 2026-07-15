@@ -125,9 +125,17 @@ async function refresh(tokens: StoredTokens): Promise<StoredTokens> {
     body,
   })
   if (!res.ok) {
-    // invalid_grant => the refresh token was revoked or has expired.
-    clearTokens(TOKENS_KEY)
-    throw new Error("Spotify session expired. Please reconnect.")
+    // Only a hard invalid_grant means the refresh token is actually dead.
+    // Transient failures (429 rate limit, 5xx outage) must NOT wipe the token,
+    // or a blip would force a full reconnect.
+    if (res.status === 400) {
+      const reason = await res.json().catch(() => null)
+      if (reason?.error === "invalid_grant") {
+        clearTokens(TOKENS_KEY)
+        throw new Error("Spotify session expired. Please reconnect.")
+      }
+    }
+    throw new Error(`Spotify token refresh failed (${res.status}).`)
   }
   const data = await res.json()
   const next: StoredTokens = {
@@ -140,12 +148,22 @@ async function refresh(tokens: StoredTokens): Promise<StoredTokens> {
   return next
 }
 
+// Spotify's PKCE flow rotates the refresh token on every refresh, so concurrent
+// refreshes with the same token self-revoke. Share one in-flight refresh.
+let refreshing: Promise<StoredTokens> | null = null
+
 /** Return a valid access token, refreshing transparently when needed. */
 export async function getSpotifyToken(): Promise<string> {
-  let tokens = loadTokens(TOKENS_KEY)
+  const tokens = loadTokens(TOKENS_KEY)
   if (!tokens) throw new Error("Not connected to Spotify.")
-  if (isExpired(tokens)) tokens = await refresh(tokens)
-  return tokens.accessToken
+  if (!isExpired(tokens)) return tokens.accessToken
+  if (!refreshing) {
+    refreshing = refresh(tokens).finally(() => {
+      refreshing = null
+    })
+  }
+  const next = await refreshing
+  return next.accessToken
 }
 
 export function isSpotifyConnected(): boolean {
