@@ -24,7 +24,7 @@ function Stat({ value, label, color }: { value: number; label: string; color: st
 /** Review & remap: check each auto-match, fix the shaky ones, then create. */
 export function Review() {
   const navigate = useNavigate()
-  const { mappings, playlistName, chooseCandidate, setCreated } = useCreate()
+  const { mappings, playlistName, chooseCandidate, setCreated, matchError } = useCreate()
   const [expanded, setExpanded] = useState<number | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -73,6 +73,7 @@ export function Review() {
       <ScreenHeader
         onBack={() => navigate("/create")}
         backLabel="Playlists"
+        contentClassName="mx-auto w-full max-w-[1080px]"
         eyebrow={<Eyebrow>Review · {playlistName}</Eyebrow>}
         title="Review matches"
         right={
@@ -108,10 +109,14 @@ export function Review() {
         </div>
       ) : null}
       {noMatchCount > 0 ? (
-        <div className="text-fg-faint px-[clamp(24px,5vw,80px)] pb-2 text-[12px] leading-[1.5]">
-          {noMatchCount} track{noMatchCount > 1 ? "s" : ""} couldn&rsquo;t be matched and
-          will be skipped. This usually means YouTube&rsquo;s daily search limit was
-          reached, which resets each day.
+        <div className="px-[clamp(24px,5vw,80px)] pb-2">
+          <div className="text-fg-faint mx-auto max-w-[1080px] text-[12px] leading-[1.5]">
+            {noMatchCount} track{noMatchCount > 1 ? "s" : ""} couldn&rsquo;t be matched and
+            will be skipped.{" "}
+            {matchError
+              ? matchError
+              : "This usually means YouTube's daily search limit was reached, which resets each day."}
+          </div>
         </div>
       ) : null}
       <div className="flex-1 overflow-auto px-[clamp(24px,5vw,80px)] pt-[clamp(4px,1vw,8px)] pb-[clamp(78px,10vh,106px)]">

@@ -85,6 +85,7 @@ export function Matching() {
         const results: Mapping[] = new Array(tracks.length)
         let completed = 0
         let cursor = 0
+        let firstError: string | null = null
 
         async function worker() {
           for (let i = cursor++; i < tracks.length; i = cursor++) {
@@ -92,8 +93,12 @@ export function Matching() {
             let mapping: Mapping
             try {
               mapping = await matchTrack(track)
-            } catch {
-              // One failed lookup shouldn't sink the whole batch.
+            } catch (err) {
+              // One failed lookup shouldn't sink the whole batch, but keep the
+              // real reason so we can surface it instead of a silent "no match".
+              if (!firstError) {
+                firstError = err instanceof Error ? err.message : String(err)
+              }
               mapping = { track, candidates: [], chosenIndex: 0, confidence: "review" }
             }
             results[i] = mapping
@@ -113,7 +118,7 @@ export function Matching() {
         await Promise.all(
           Array.from({ length: Math.min(4, tracks.length) }, worker)
         )
-        setMappings(results)
+        setMappings(results, firstError)
         advanceTimer.current = window.setTimeout(() => navigate("/create/review"), 600)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Matching failed.")

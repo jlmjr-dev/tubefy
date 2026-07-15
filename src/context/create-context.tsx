@@ -15,8 +15,10 @@ interface CreateContextValue {
   playlistName: string
   mappings: Mapping[]
   created: CreatedPlaylist | null
+  /** The real error from the last matching run, if any tracks failed to look up. */
+  matchError: string | null
   setSource: (id: string, name: string) => void
-  setMappings: (mappings: Mapping[]) => void
+  setMappings: (mappings: Mapping[], matchError?: string | null) => void
   chooseCandidate: (rowIndex: number, candidateIndex: number) => void
   setCreated: (created: CreatedPlaylist) => void
   reset: () => void
@@ -30,15 +32,20 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
   const [playlistName, setPlaylistName] = React.useState("")
   const [mappings, setMappingsState] = React.useState<Mapping[]>([])
   const [created, setCreatedState] = React.useState<CreatedPlaylist | null>(null)
+  const [matchError, setMatchError] = React.useState<string | null>(null)
 
   const setSource = React.useCallback((id: string, name: string) => {
     setPlaylistId(id)
     setPlaylistName(name)
   }, [])
 
-  const setMappings = React.useCallback((next: Mapping[]) => {
-    setMappingsState(next)
-  }, [])
+  const setMappings = React.useCallback(
+    (next: Mapping[], error: string | null = null) => {
+      setMappingsState(next)
+      setMatchError(error)
+    },
+    []
+  )
 
   const chooseCandidate = React.useCallback(
     (rowIndex: number, candidateIndex: number) => {
@@ -60,6 +67,7 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
     setPlaylistName("")
     setMappingsState([])
     setCreatedState(null)
+    setMatchError(null)
   }, [])
 
   const value = React.useMemo<CreateContextValue>(
@@ -68,6 +76,7 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
       playlistName,
       mappings,
       created,
+      matchError,
       setSource,
       setMappings,
       chooseCandidate,
@@ -79,6 +88,7 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
       playlistName,
       mappings,
       created,
+      matchError,
       setSource,
       setMappings,
       chooseCandidate,
