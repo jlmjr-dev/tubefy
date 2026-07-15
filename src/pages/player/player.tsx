@@ -187,13 +187,11 @@ export function Player() {
         ) : null}
         {ready && !playing ? (
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
-            <div className="flex size-[88px] items-center justify-center bg-[oklch(0.62_0.21_277/0.94)]">
-              <Play
-                className="size-[34px] translate-x-[3px] text-[oklch(0.98_0_0)]"
-                fill="currentColor"
-                strokeWidth={0}
-              />
-            </div>
+            <Play
+              className="size-[64px] text-[oklch(0.98_0_0/0.92)] drop-shadow-[0_2px_18px_oklch(0_0_0/0.7)]"
+              fill="currentColor"
+              strokeWidth={0}
+            />
           </div>
         ) : null}
       </div>

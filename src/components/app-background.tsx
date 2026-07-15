@@ -15,8 +15,6 @@ export function AppBackground() {
         className="absolute inset-0 opacity-5 mix-blend-screen"
         style={{ backgroundImage: NOISE }}
       />
-      <div className="absolute top-0 bottom-0 left-[clamp(24px,5vw,80px)] w-px bg-[linear-gradient(oklch(1_0_0/0),oklch(1_0_0/0.06)_20%,oklch(1_0_0/0.06)_80%,oklch(1_0_0/0))]" />
-      <div className="absolute top-0 right-[clamp(24px,5vw,80px)] bottom-0 w-px bg-[linear-gradient(oklch(1_0_0/0),oklch(1_0_0/0.06)_20%,oklch(1_0_0/0.06)_80%,oklch(1_0_0/0))]" />
     </div>
   )
 }
