@@ -13,6 +13,11 @@ the OAuth runs in the browser.
 
 ![Tubefy login](docs/screenshot-login.png)
 
+Once both platforms are linked, the home dashboard is the hub: jump back into a
+YouTube playlist, or pick a Spotify one to convert.
+
+![The home dashboard](docs/screenshot-home.png)
+
 ## Features
 
 - **Connect both platforms** with real OAuth, entirely client-side: Spotify
