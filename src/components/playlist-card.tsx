@@ -23,7 +23,7 @@ export function PlaylistCard({
   seed: string
   thumbnailUrl?: string
   title: string
-  meta: string
+  meta?: string
   onClick: () => void
   aspectClassName?: string
   monogramClassName?: string
@@ -59,7 +59,9 @@ export function PlaylistCard({
       <div className={cn("mt-[11px] truncate font-semibold uppercase", titleClassName)}>
         {title}
       </div>
-      <div className="text-fg-faint mt-1 truncate text-[12px]">{meta}</div>
+      {meta ? (
+        <div className="text-fg-faint mt-1 truncate text-[12px]">{meta}</div>
+      ) : null}
     </button>
   )
 }

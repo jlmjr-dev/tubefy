@@ -5,6 +5,7 @@ import { RequireAuth } from "@/components/require-auth"
 import { Callback } from "@/pages/callback/callback"
 import { Home } from "@/pages/home/home"
 import { Login } from "@/pages/login/login"
+import { WatchBrowse } from "@/pages/watch/watch-browse"
 
 /**
  * The app is a full-viewport cinematic stage: a fixed backdrop with one routed
@@ -24,6 +25,14 @@ export function App() {
             element={
               <RequireAuth>
                 <Home />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/watch"
+            element={
+              <RequireAuth>
+                <WatchBrowse />
               </RequireAuth>
             }
           />
