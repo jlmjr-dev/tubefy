@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 
 import { AppBackground } from "@/components/app-background"
+import { Callback } from "@/pages/callback/callback"
 import { Login } from "@/pages/login/login"
 
 /**
@@ -15,6 +16,7 @@ export function App() {
       <main className="fixed inset-0 overflow-hidden">
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/callback" element={<Callback />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

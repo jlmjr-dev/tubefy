@@ -1,0 +1,143 @@
+import { config } from "@/lib/config"
+import type { PlatformProfile } from "@/lib/auth/types"
+import type { TokenClient, TokenResponse } from "@/types/google-gsi"
+
+/**
+ * YouTube auth via the Google Identity Services "token model". This is the
+ * current browser-only OAuth path (the old gapi.auth2 is retired): there is NO
+ * refresh token — access tokens last ~1h and are renewed by asking GIS again,
+ * silently (`prompt: ""`) once the user has consented.
+ */
+
+const GSI_SRC = "https://accounts.google.com/gsi/client"
+const TOKEN_KEY = "tubefy.youtube.token"
+const API = "https://www.googleapis.com/youtube/v3"
+
+interface YouTubeToken {
+  accessToken: string
+  expiresAt: number
+}
+
+function loadToken(): YouTubeToken | null {
+  try {
+    const raw = localStorage.getItem(TOKEN_KEY)
+    return raw ? (JSON.parse(raw) as YouTubeToken) : null
+  } catch {
+    return null
+  }
+}
+
+function saveToken(token: YouTubeToken): void {
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(token))
+}
+
+function clearToken(): void {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
+let gsiPromise: Promise<void> | null = null
+
+/** Load the GIS client script once; safe to call eagerly at app start. */
+export function loadGsi(): Promise<void> {
+  if (gsiPromise) return gsiPromise
+  gsiPromise = new Promise<void>((resolve, reject) => {
+    if (window.google?.accounts?.oauth2) return resolve()
+    const existing = document.getElementById("gsi-client")
+    if (existing) {
+      existing.addEventListener("load", () => resolve())
+      existing.addEventListener("error", () => reject(new Error("GIS load failed")))
+      return
+    }
+    const script = document.createElement("script")
+    script.id = "gsi-client"
+    script.src = GSI_SRC
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error("Failed to load Google Identity Services."))
+    document.head.appendChild(script)
+  })
+  return gsiPromise
+}
+
+let tokenClient: TokenClient | null = null
+
+async function getClient(): Promise<TokenClient> {
+  await loadGsi()
+  if (!window.google) throw new Error("Google Identity Services unavailable.")
+  if (!tokenClient) {
+    tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: config.google.clientId,
+      scope: config.google.scopes.join(" "),
+      callback: () => {},
+    })
+  }
+  return tokenClient
+}
+
+function requestToken(prompt: "" | "consent"): Promise<TokenResponse> {
+  return new Promise((resolve, reject) => {
+    getClient()
+      .then((client) => {
+        client.callback = (response) => {
+          if (response.error) reject(new Error(response.error))
+          else resolve(response)
+        }
+        client.error_callback = (err) =>
+          reject(new Error(err.message || err.type || "YouTube authorization failed."))
+        client.requestAccessToken({ prompt })
+      })
+      .catch(reject)
+  })
+}
+
+/** Interactive connect: prompts the account picker / consent the first time. */
+export async function connectYouTube(): Promise<void> {
+  const response = await requestToken("")
+  saveToken({
+    accessToken: response.access_token,
+    expiresAt: Date.now() + response.expires_in * 1000,
+  })
+}
+
+/** Return a valid access token, renewing silently when it has expired. */
+export async function getYouTubeToken(): Promise<string> {
+  const token = loadToken()
+  if (token && token.expiresAt - 60_000 > Date.now()) return token.accessToken
+  const response = await requestToken("")
+  const next = {
+    accessToken: response.access_token,
+    expiresAt: Date.now() + response.expires_in * 1000,
+  }
+  saveToken(next)
+  return next.accessToken
+}
+
+export function isYouTubeConnected(): boolean {
+  const token = loadToken()
+  return Boolean(token && token.expiresAt > Date.now())
+}
+
+export function disconnectYouTube(): void {
+  const token = loadToken()
+  if (token && window.google?.accounts?.oauth2) {
+    window.google.accounts.oauth2.revoke(token.accessToken)
+  }
+  clearToken()
+}
+
+export async function fetchYouTubeProfile(): Promise<PlatformProfile> {
+  const token = await getYouTubeToken()
+  const headers = { Authorization: `Bearer ${token}` }
+  const [channels, playlists] = await Promise.all([
+    fetch(`${API}/channels?part=snippet&mine=true`, { headers }).then((r) => r.json()),
+    fetch(`${API}/playlists?part=id&mine=true&maxResults=1`, { headers }).then((r) =>
+      r.json()
+    ),
+  ])
+  const snippet = channels.items?.[0]?.snippet
+  return {
+    name: snippet?.title || "YouTube",
+    avatarUrl: snippet?.thumbnails?.default?.url,
+    playlistCount: playlists.pageInfo?.totalResults,
+  }
+}
