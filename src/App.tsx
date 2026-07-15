@@ -6,6 +6,7 @@ import { CreateProvider } from "@/context/create-context"
 import { Callback } from "@/pages/callback/callback"
 import { CreatePick } from "@/pages/create/create-pick"
 import { Matching } from "@/pages/create/matching"
+import { Review } from "@/pages/create/review"
 import { Home } from "@/pages/home/home"
 import { Login } from "@/pages/login/login"
 import { Player } from "@/pages/player/player"
@@ -60,6 +61,7 @@ export function App() {
           >
             <Route index element={<CreatePick />} />
             <Route path="matching" element={<Matching />} />
+            <Route path="review" element={<Review />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
