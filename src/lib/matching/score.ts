@@ -2,25 +2,49 @@ import type { Confidence, Track, VideoCandidate } from "@/lib/types"
 
 /**
  * Heuristics for picking the right music video for a Spotify track. We score each
- * YouTube candidate on three signals the handoff calls out: duration proximity,
- * channel type (Official Artist / VEVO / "- Topic" art tracks beat fan uploads),
- * and title similarity (penalizing cover / live / lyric / sped-up unless the
- * Spotify track itself implies them).
+ * YouTube candidate on: duration proximity, channel type (Official Artist / VEVO
+ * / "- Topic" art tracks beat fan uploads), title similarity, an explicit
+ * "official video" signal in the title, and a heavy penalty for covers /
+ * karaoke and other non-canonical variants (live, acoustic, remix, ...) so the
+ * canonical official upload wins.
  */
 
-const NEGATIVE_KEYWORDS = [
+// Phrases that mark the real, label-published upload.
+const OFFICIAL_TITLE_PHRASES = [
+  "official music video",
+  "official video",
+  "official audio",
+  "official lyric video",
+  "official visualizer",
+  "official hd video",
+]
+
+// Covers / karaoke / tributes: not the original recording. Penalized hard so
+// they sink below any real match and are never auto-selected.
+const COVER_KEYWORDS = [
   "cover",
+  "covered",
+  "tribute",
+  "karaoke",
+  "in the style of",
+  "made famous by",
+  "as made famous by",
+  "originally by",
+]
+
+// Non-canonical variants of the real recording.
+const VARIANT_KEYWORDS = [
   "live",
-  "lyric",
+  "acoustic",
+  "remix",
   "sped up",
   "slowed",
-  "remix",
-  "8d",
   "reverb",
-  "instrumental",
-  "karaoke",
+  "8d",
   "nightcore",
-  "acoustic",
+  "instrumental",
+  "mashup",
+  "parody",
 ]
 
 function tokenize(text: string): string[] {
@@ -52,21 +76,35 @@ export function titleSimilarity(track: Track, candidate: VideoCandidate): number
   return hits / wanted.size
 }
 
-function channelSignals(track: Track, candidate: VideoCandidate) {
+function isOfficialChannel(track: Track, candidate: VideoCandidate): boolean {
   const channel = candidate.channelTitle.toLowerCase()
   // "- Topic" and "VEVO" are distinctive enough to match as substrings (VEVO is
   // often concatenated, e.g. "ArtistVEVO"); the artist name needs word bounds.
   const isTopic = channel.includes("- topic")
   const isVevo = channel.includes("vevo")
   const isOfficialArtist = containsWord(channel, track.primaryArtist)
-  return { official: isTopic || isVevo || isOfficialArtist }
+  return isTopic || isVevo || isOfficialArtist
 }
 
-function badKeyword(track: Track, candidate: VideoCandidate): boolean {
+function hasOfficialTitle(candidate: VideoCandidate): boolean {
+  const title = candidate.title.toLowerCase()
+  return OFFICIAL_TITLE_PHRASES.some((phrase) => title.includes(phrase))
+}
+
+/** A keyword present in the candidate title but not implied by the track. */
+function unimpliedKeyword(track: Track, candidate: VideoCandidate, keywords: string[]) {
   const trackText = `${track.title} ${track.album ?? ""}`
-  return NEGATIVE_KEYWORDS.some(
+  return keywords.some(
     (kw) => containsWord(candidate.title, kw) && !containsWord(trackText, kw)
   )
+}
+
+function isCover(track: Track, candidate: VideoCandidate): boolean {
+  return unimpliedKeyword(track, candidate, COVER_KEYWORDS)
+}
+
+function isVariant(track: Track, candidate: VideoCandidate): boolean {
+  return unimpliedKeyword(track, candidate, VARIANT_KEYWORDS)
 }
 
 /** Higher is better. Used to rank candidates for one track. */
@@ -80,14 +118,17 @@ export function scoreCandidate(track: Track, candidate: VideoCandidate): number 
   else if (diff <= 12) score += 10
   else score -= 20
 
-  const { official } = channelSignals(track, candidate)
-  score += official ? 32 : -5
+  score += isOfficialChannel(track, candidate) ? 34 : -6
 
   score += titleSimilarity(track, candidate) * 25
 
-  const title = candidate.title.toLowerCase()
-  if (title.includes("official")) score += 6
-  if (badKeyword(track, candidate)) score -= 14
+  // Prefer the explicitly-official upload; a bare "official" word counts less.
+  if (hasOfficialTitle(candidate)) score += 22
+  else if (containsWord(candidate.title, "official")) score += 6
+
+  // Sink covers/karaoke far below any real match; lightly demote other variants.
+  if (isCover(track, candidate)) score -= 45
+  if (isVariant(track, candidate)) score -= 16
 
   return score
 }
@@ -95,9 +136,8 @@ export function scoreCandidate(track: Track, candidate: VideoCandidate): number 
 /** Whether the chosen candidate is a confident match or one to review. */
 export function confidenceFor(track: Track, candidate: VideoCandidate): Confidence {
   const durationOk = Math.abs(candidate.durationSec - track.durationMs / 1000) <= 3
-  const { official } = channelSignals(track, candidate)
+  const official = isOfficialChannel(track, candidate)
   const similar = titleSimilarity(track, candidate) >= 0.6
-  return durationOk && official && similar && !badKeyword(track, candidate)
-    ? "strong"
-    : "review"
+  const clean = !isCover(track, candidate) && !isVariant(track, candidate)
+  return durationOk && official && similar && clean ? "strong" : "review"
 }
