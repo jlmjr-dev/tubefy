@@ -1,30 +1,23 @@
-import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { AudioLines, MonitorPlay } from "lucide-react";
+import { Wordmark } from "@/components/wordmark"
 
+/**
+ * Login is the auth gate: the user connects both Spotify and YouTube before the
+ * rest of the app unlocks. This first pass lays out the cinematic hero; the dual
+ * connect cards and OAuth wiring are added once the auth layer exists.
+ */
 export function Login() {
-    return (
-        <Card className="w-full max-w-sm">
-            <CardHeader>
-                <CardTitle>Login with both platforms</CardTitle>
-                <CardDescription>
-                    We need you to login to both platforms in order to use the app. You must login with your Spotify and Youtube account.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button className="w-full mb-4">
-                    <AudioLines /> Login with Spotify
-                </Button>
-                <Button className="w-full">
-                    <MonitorPlay /> Login with Youtube
-                </Button>
-            </CardContent>
-        </Card>
-    )
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center overflow-auto px-[clamp(20px,6vw,90px)] py-[clamp(20px,4vw,64px)]">
+      <div className="mb-[clamp(24px,4vw,48px)] text-center [animation:fadeUp_0.6s_0.04s_both]">
+        <Wordmark variant="hero" />
+        <div className="mt-5 flex items-center justify-center gap-[14px]">
+          <span className="h-px w-[clamp(28px,6vw,52px)] bg-[oklch(1_0_0/0.24)]" />
+          <span className="text-[11px] tracking-[0.32em] text-fg-muted uppercase">
+            Where your two libraries meet
+          </span>
+          <span className="h-px w-[clamp(28px,6vw,52px)] bg-[oklch(1_0_0/0.24)]" />
+        </div>
+      </div>
+    </div>
+  )
 }

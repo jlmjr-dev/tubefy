@@ -1,21 +1,46 @@
-# React + TypeScript + Vite + shadcn/ui
+# Tubefy
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+Turn a Spotify playlist into a YouTube music-video mix, then watch it in a clean
+cinematic player. Tubefy connects your Spotify and YouTube accounts, matches each
+track to its best music video, lets you review and remap the shaky matches, builds
+the playlist on your YouTube, and plays it back.
 
-## Adding components
+The whole product is one continuous flow:
 
-To add components to your app, run the following command:
-
-```bash
-npx shadcn@latest add button
+```
+Login (connect both) -> Home -> Watch (browse -> player)
+Login (connect both) -> Home -> Create (pick -> matching -> review -> success -> player)
 ```
 
-This will place the ui components in the `src/components` directory.
+## Stack
 
-## Using components
+- React 19 + TypeScript + Vite
+- Tailwind CSS v4 + shadcn/ui (the `base-sera` style)
+- `react-router-dom` for the screen flow
+- `lucide-react` icons, `Instrument Sans` + `Lora` fonts
+- Pure frontend SPA: Spotify Authorization Code + PKCE and Google Identity
+  Services token model, no backend and no client secrets
 
-To use the components in your app, import them as follows:
+## Running locally
 
-```tsx
-import { Button } from "@/components/ui/button"
+Tubefy talks to the real Spotify and YouTube APIs, so it needs your own OAuth
+credentials. See [SETUP.md](SETUP.md) for the full walkthrough (creating the
+Spotify + Google Cloud apps, scopes, redirect URIs, and quota notes).
+
+```bash
+pnpm install
+cp .env.example .env.local   # then fill in your client ids
+pnpm dev                     # http://127.0.0.1:5173
+```
+
+> The dev server runs on `http://127.0.0.1:5173` on purpose: Spotify no longer
+> allows `localhost` as an OAuth redirect host.
+
+## Scripts
+
+```bash
+pnpm dev        # start the dev server
+pnpm build      # typecheck + production build
+pnpm typecheck  # type-check only
+pnpm lint       # eslint
 ```

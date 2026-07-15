@@ -11,4 +11,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Serve on the loopback IP: Spotify no longer allows `localhost` as a redirect
+  // host, so the app and its OAuth redirect must both be http://127.0.0.1:5173.
+  server: {
+    host: "127.0.0.1",
+    port: 5173,
+    strictPort: true,
+  },
 })
