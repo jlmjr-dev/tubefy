@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Check } from "lucide-react"
 import { Navigate, useNavigate } from "react-router-dom"
 
@@ -28,6 +28,9 @@ export function Review() {
   const [expanded, setExpanded] = useState<number | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Survives a failed attempt so a retry resumes the same playlist rather than
+  // creating a duplicate on the user's channel.
+  const buildProgress = useRef<{ playlistId?: string; inserted: number }>({ inserted: 0 })
 
   if (mappings.length === 0) return <Navigate to="/create" replace />
 
@@ -40,7 +43,16 @@ export function Review() {
     setError(null)
     try {
       const chosenCount = mappings.filter((m) => m.candidates[m.chosenIndex]).length
-      const playlistId = await buildYouTubePlaylist(playlistName, mappings)
+      const { playlistId } = await buildYouTubePlaylist(playlistName, mappings, {
+        existingPlaylistId: buildProgress.current.playlistId,
+        startIndex: buildProgress.current.inserted,
+        onCreated: (id) => {
+          buildProgress.current.playlistId = id
+        },
+        onProgress: (n) => {
+          buildProgress.current.inserted = n
+        },
+      })
       setCreated({
         id: playlistId,
         name: playlistName,

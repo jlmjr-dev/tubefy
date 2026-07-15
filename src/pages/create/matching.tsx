@@ -57,6 +57,7 @@ export function Matching() {
   const [log, setLog] = useState<LogEntry[]>([])
   const [error, setError] = useState<string | null>(null)
   const started = useRef(false)
+  const advanceTimer = useRef<number | null>(null)
 
   useEffect(() => {
     if (started.current) return
@@ -92,13 +93,16 @@ export function Matching() {
           setProgress(Math.round((mappings.length / tracks.length) * 100))
         }
         setMappings(mappings)
-        window.setTimeout(() => navigate("/create/review"), 600)
+        advanceTimer.current = window.setTimeout(() => navigate("/create/review"), 600)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Matching failed.")
       }
     }
 
     void run()
+    return () => {
+      if (advanceTimer.current) window.clearTimeout(advanceTimer.current)
+    }
     // Run the matching job exactly once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
