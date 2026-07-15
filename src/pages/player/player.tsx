@@ -25,8 +25,10 @@ export function Player() {
   const [chromeVisible, setChromeVisible] = useState(true)
   const [muted, setMuted] = useState(false)
   const [repeat, setRepeat] = useState(false)
+  const [allUnplayable, setAllUnplayable] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | null>(null)
+  const skipCount = useRef(0)
 
   // Manual next/prev wrap around the queue.
   const goNext = useCallback(() => {
@@ -44,6 +46,23 @@ export function Player() {
     })
   }, [queue.length, repeat])
 
+  // Many official music videos block embedding; skip past unplayable ones, and
+  // only give up once the entire queue has failed without anything playing.
+  const handleError = useCallback(() => {
+    skipCount.current += 1
+    if (queue.length > 0 && skipCount.current >= queue.length) {
+      setAllUnplayable(true)
+      return
+    }
+    setIndex((i) => (queue.length ? (i + 1) % queue.length : 0))
+  }, [queue.length])
+
+  // A successful play means the queue isn't all-broken; reset the skip counter.
+  const handlePlay = useCallback(() => {
+    skipCount.current = 0
+    setAllUnplayable(false)
+  }, [])
+
   const {
     containerRef,
     ready,
@@ -54,7 +73,11 @@ export function Player() {
     toggle,
     seekTo,
     setVolume,
-  } = useYouTubePlayer({ onEnded: handleEnded })
+  } = useYouTubePlayer({
+    onEnded: handleEnded,
+    onError: handleError,
+    onPlay: handlePlay,
+  })
 
   // Reset the queue position when the playlist changes (render-phase reset).
   if (listId !== trackedList) {
@@ -192,6 +215,18 @@ export function Player() {
         </StageMessage>
       ) : queue.length === 0 ? (
         <StageMessage>No playable videos in this playlist.</StageMessage>
+      ) : allUnplayable && current ? (
+        <StageMessage>
+          <span>These videos can&rsquo;t be embedded here.</span>
+          <a
+            href={`https://www.youtube.com/watch?v=${current.videoId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-indigo-text mt-3 text-[11px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Watch on YouTube
+          </a>
+        </StageMessage>
       ) : null}
     </div>
   )
@@ -200,8 +235,8 @@ export function Player() {
 /** Centered status overlay on the player stage (loading / error / empty). */
 function StageMessage({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute inset-0 grid place-items-center">
-      <div className="text-fg-muted flex flex-col items-center text-center text-[12px] font-semibold tracking-[0.2em] uppercase">
+    <div className="pointer-events-none absolute inset-0 grid place-items-center">
+      <div className="text-fg-muted pointer-events-auto flex flex-col items-center text-center text-[12px] font-semibold tracking-[0.2em] uppercase">
         {children}
       </div>
     </div>

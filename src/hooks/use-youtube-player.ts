@@ -21,14 +21,26 @@ interface UseYouTubePlayer {
  * auto-advancing a queue. Keeps one player for its lifetime (swap videos via
  * `load`) and tears it down on unmount.
  */
-export function useYouTubePlayer({ onEnded }: { onEnded?: () => void }): UseYouTubePlayer {
+export function useYouTubePlayer({
+  onEnded,
+  onError,
+  onPlay,
+}: {
+  onEnded?: () => void
+  onError?: (code: number) => void
+  onPlay?: () => void
+}): UseYouTubePlayer {
   const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<YTPlayer | null>(null)
   const intervalRef = useRef<number | null>(null)
   const onEndedRef = useRef(onEnded)
+  const onErrorRef = useRef(onError)
+  const onPlayRef = useRef(onPlay)
   useEffect(() => {
     onEndedRef.current = onEnded
-  }, [onEnded])
+    onErrorRef.current = onError
+    onPlayRef.current = onPlay
+  }, [onEnded, onError, onPlay])
 
   const [ready, setReady] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -78,6 +90,7 @@ export function useYouTubePlayer({ onEnded }: { onEnded?: () => void }): UseYouT
             if (event.data === state.PLAYING) {
               setPlaying(true)
               startPolling()
+              onPlayRef.current?.()
               const total = playerRef.current?.getDuration() || 0
               if (total) setDuration(total)
             } else if (event.data === state.PAUSED) {
@@ -88,6 +101,12 @@ export function useYouTubePlayer({ onEnded }: { onEnded?: () => void }): UseYouT
               stopPolling()
               onEndedRef.current?.()
             }
+          },
+          onError: (event) => {
+            // Codes 2, 5, 100, 101, 150 — unplayable / not embeddable.
+            setPlaying(false)
+            stopPolling()
+            onErrorRef.current?.(event.data)
           },
         },
       })
