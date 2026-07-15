@@ -32,6 +32,16 @@ function tokenize(text: string): string[] {
     .filter(Boolean)
 }
 
+/**
+ * Whole-word (boundary-aware) containment. Avoids substring false positives
+ * like "Sia" matching "Asia" or "live" matching "deliverance".
+ */
+function containsWord(haystack: string, needle: string): boolean {
+  if (needle.length < 2) return false
+  const escaped = needle.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`(^|\\W)${escaped}(\\W|$)`).test(haystack.toLowerCase())
+}
+
 /** Fraction of the track's title tokens present in the candidate title (0..1). */
 export function titleSimilarity(track: Track, candidate: VideoCandidate): number {
   const wanted = new Set(tokenize(track.title))
@@ -44,17 +54,19 @@ export function titleSimilarity(track: Track, candidate: VideoCandidate): number
 
 function channelSignals(track: Track, candidate: VideoCandidate) {
   const channel = candidate.channelTitle.toLowerCase()
-  const artist = track.primaryArtist.toLowerCase()
+  // "- Topic" and "VEVO" are distinctive enough to match as substrings (VEVO is
+  // often concatenated, e.g. "ArtistVEVO"); the artist name needs word bounds.
   const isTopic = channel.includes("- topic")
   const isVevo = channel.includes("vevo")
-  const isOfficialArtist = artist.length > 1 && channel.includes(artist)
+  const isOfficialArtist = containsWord(channel, track.primaryArtist)
   return { official: isTopic || isVevo || isOfficialArtist }
 }
 
 function badKeyword(track: Track, candidate: VideoCandidate): boolean {
-  const title = candidate.title.toLowerCase()
-  const trackText = `${track.title} ${track.album ?? ""}`.toLowerCase()
-  return NEGATIVE_KEYWORDS.some((kw) => title.includes(kw) && !trackText.includes(kw))
+  const trackText = `${track.title} ${track.album ?? ""}`
+  return NEGATIVE_KEYWORDS.some(
+    (kw) => containsWord(candidate.title, kw) && !containsWord(trackText, kw)
+  )
 }
 
 /** Higher is better. Used to rank candidates for one track. */
