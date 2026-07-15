@@ -24,19 +24,14 @@ const CONFETTI = Array.from({ length: 16 }, (_, i) => ({
 /** Success: confirm creation, then hand off to watching the new playlist. */
 export function Success() {
   const navigate = useNavigate()
-  const { created, reset } = useCreate()
+  const { created } = useCreate()
 
   if (!created) return <Navigate to="/home" replace />
 
-  const watchNow = () => {
-    const id = created.id
-    reset()
-    navigate(`/player?list=${id}`)
-  }
-  const backHome = () => {
-    reset()
-    navigate("/home")
-  }
+  // Leaving /create unmounts the CreateProvider, so state clears on its own.
+  // (Calling reset() here would null `created` first and bounce us to /home.)
+  const watchNow = () => navigate(`/player?list=${created.id}`)
+  const backHome = () => navigate("/home")
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden px-[clamp(20px,6vw,90px)] pt-[clamp(24px,5vw,80px)] pb-[clamp(80px,10vh,110px)]">
