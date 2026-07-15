@@ -186,9 +186,12 @@ export function Player() {
           </div>
         ) : null}
         {ready && !playing ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          // Cover YouTube's paused UI (its play button, title, share, and
+          // "More videos" cards, none of which the embed lets us remove) with a
+          // clean scrim + our own solid-white play glyph.
+          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[oklch(0.06_0.004_107/0.68)]">
             <Play
-              className="size-[64px] text-[oklch(0.98_0_0/0.92)] drop-shadow-[0_2px_18px_oklch(0_0_0/0.7)]"
+              className="size-20 text-white drop-shadow-[0_1px_6px_oklch(0_0_0/0.45)]"
               fill="currentColor"
               strokeWidth={0}
             />
