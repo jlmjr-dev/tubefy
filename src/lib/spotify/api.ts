@@ -38,6 +38,14 @@ async function spotifyGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** A single playlist's name (used when arriving at matching without route state). */
+export async function getSpotifyPlaylistName(playlistId: string): Promise<string> {
+  const data = await spotifyGet<{ name: string }>(
+    `/playlists/${playlistId}?fields=name`
+  )
+  return data.name
+}
+
 /** All of the user's playlists (private, collaborative, and followed). */
 export async function getSpotifyPlaylists(): Promise<Playlist[]> {
   const playlists: Playlist[] = []

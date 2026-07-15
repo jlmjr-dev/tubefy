@@ -58,7 +58,11 @@ export function CreatePick() {
                     </div>
                   }
                   overlay={<BuildPill />}
-                  onClick={() => navigate(`/create/matching?list=${playlist.id}`)}
+                  onClick={() =>
+                    navigate(`/create/matching?list=${playlist.id}`, {
+                      state: { name: playlist.title },
+                    })
+                  }
                 />
               ))
             }

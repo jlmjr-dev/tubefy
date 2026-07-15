@@ -1,9 +1,11 @@
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Navigate, Outlet, Route, Routes } from "react-router-dom"
 
 import { AppBackground } from "@/components/app-background"
 import { RequireAuth } from "@/components/require-auth"
+import { CreateProvider } from "@/context/create-context"
 import { Callback } from "@/pages/callback/callback"
 import { CreatePick } from "@/pages/create/create-pick"
+import { Matching } from "@/pages/create/matching"
 import { Home } from "@/pages/home/home"
 import { Login } from "@/pages/login/login"
 import { Player } from "@/pages/player/player"
@@ -50,10 +52,15 @@ export function App() {
             path="/create"
             element={
               <RequireAuth>
-                <CreatePick />
+                <CreateProvider>
+                  <Outlet />
+                </CreateProvider>
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<CreatePick />} />
+            <Route path="matching" element={<Matching />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

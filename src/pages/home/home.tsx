@@ -132,7 +132,11 @@ export function Home() {
                   meta={`${playlist.itemCount} songs`}
                   animationDelay={`${i * 0.03}s`}
                   overlay={<ConvertPill />}
-                  onClick={() => navigate(`/create/matching?list=${playlist.id}`)}
+                  onClick={() =>
+                    navigate(`/create/matching?list=${playlist.id}`, {
+                      state: { name: playlist.title },
+                    })
+                  }
                 />
               ))
             }
