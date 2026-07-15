@@ -5,6 +5,7 @@ import { RequireAuth } from "@/components/require-auth"
 import { Callback } from "@/pages/callback/callback"
 import { Home } from "@/pages/home/home"
 import { Login } from "@/pages/login/login"
+import { Player } from "@/pages/player/player"
 import { WatchBrowse } from "@/pages/watch/watch-browse"
 
 /**
@@ -33,6 +34,14 @@ export function App() {
             element={
               <RequireAuth>
                 <WatchBrowse />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/player"
+            element={
+              <RequireAuth>
+                <Player />
               </RequireAuth>
             }
           />

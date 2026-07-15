@@ -27,4 +27,12 @@ export default defineConfig([
       'react-refresh/only-export-components': 'off',
     },
   },
+  {
+    // Data-loading and imperative media hooks legitimately set state from
+    // async callbacks and effects; the compiler rule does not fit them.
+    files: ['src/hooks/**/*.ts'],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
 ])

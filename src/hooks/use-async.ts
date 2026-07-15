@@ -25,7 +25,6 @@ export function useAsync<T>(
   useEffect(() => {
     let cancelled = false
     // Reset to loading immediately when deps change (e.g. reload()).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState((prev) => ({ ...prev, loading: true, error: null }))
     loader()
       .then((data) => {
