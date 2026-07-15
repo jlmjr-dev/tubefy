@@ -78,21 +78,42 @@ export function Matching() {
         }
         setSource(listId, playlistName)
 
-        const mappings: Mapping[] = []
-        for (const track of tracks) {
-          const mapping = await matchTrack(track)
-          mappings.push(mapping)
-          setLog((entries) => [
-            ...entries,
-            {
-              title: track.title,
-              yt: mapping.candidates[0]?.title ?? "No match found",
-              confidence: mapping.confidence,
-            },
-          ])
-          setProgress(Math.round((mappings.length / tracks.length) * 100))
+        // Match tracks with a small pool of concurrent workers instead of one
+        // at a time. Browsers cap ~6 connections per host, so a pool of 6 keeps
+        // the pipe full without tripping YouTube rate limits. Results stay in
+        // track order; the log streams as each finishes.
+        const results: Mapping[] = new Array(tracks.length)
+        let completed = 0
+        let cursor = 0
+
+        async function worker() {
+          for (let i = cursor++; i < tracks.length; i = cursor++) {
+            const track = tracks[i]
+            let mapping: Mapping
+            try {
+              mapping = await matchTrack(track)
+            } catch {
+              // One failed lookup shouldn't sink the whole batch.
+              mapping = { track, candidates: [], chosenIndex: 0, confidence: "review" }
+            }
+            results[i] = mapping
+            completed += 1
+            setLog((entries) => [
+              ...entries,
+              {
+                title: track.title,
+                yt: mapping.candidates[0]?.title ?? "No match found",
+                confidence: mapping.confidence,
+              },
+            ])
+            setProgress(Math.round((completed / tracks.length) * 100))
+          }
         }
-        setMappings(mappings)
+
+        await Promise.all(
+          Array.from({ length: Math.min(6, tracks.length) }, worker)
+        )
+        setMappings(results)
         advanceTimer.current = window.setTimeout(() => navigate("/create/review"), 600)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Matching failed.")
