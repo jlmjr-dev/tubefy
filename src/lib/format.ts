@@ -37,8 +37,14 @@ export function parseIsoDuration(iso: string): number {
 export function formatViewCount(count: number): string {
   if (!Number.isFinite(count) || count < 0) return ""
   if (count >= 1e9) return `${trim(count / 1e9)}B views`
-  if (count >= 1e6) return `${trim(count / 1e6)}M views`
-  if (count >= 1e3) return `${Math.round(count / 1e3)}K views`
+  if (count >= 1e6) {
+    // 999.95M would round to "1000.0M"; promote to B.
+    return count / 1e6 >= 999.95 ? "1B views" : `${trim(count / 1e6)}M views`
+  }
+  if (count >= 1e3) {
+    const thousands = Math.round(count / 1e3)
+    return thousands >= 1000 ? "1M views" : `${thousands}K views`
+  }
   return `${count} views`
 }
 

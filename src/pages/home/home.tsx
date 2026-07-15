@@ -61,7 +61,11 @@ export function Home() {
             <ActionCard
               eyebrow="Watch"
               title="Play a mix"
-              subtitle={`${youtubePlaylists.data?.length ?? 0} YouTube playlists ready`}
+              subtitle={
+                youtubePlaylists.data
+                  ? `${youtubePlaylists.data.length} YouTube playlists ready`
+                  : "Play a YouTube playlist"
+              }
               Icon={MonitorPlay}
               gradient="linear-gradient(140deg, oklch(0.23 0.035 277), oklch(0.185 0.008 107))"
               hoverBorder="oklch(0.62 0.21 277 / 0.5)"

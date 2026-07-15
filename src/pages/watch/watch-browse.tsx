@@ -20,9 +20,11 @@ export function WatchBrowse() {
         eyebrow={<Eyebrow>Watch · YouTube</Eyebrow>}
         title="Your playlists"
         right={
-          <div className="text-fg-faint text-[11px] font-semibold tracking-[0.2em] uppercase">
-            {playlists.data?.length ?? 0} playlists
-          </div>
+          playlists.data ? (
+            <div className="text-fg-faint text-[11px] font-semibold tracking-[0.2em] uppercase">
+              {playlists.data.length} playlists
+            </div>
+          ) : undefined
         }
       />
       <div className="flex-1 overflow-auto px-[clamp(24px,5vw,80px)] pt-[clamp(6px,1vw,10px)] pb-[clamp(74px,10vh,102px)]">
