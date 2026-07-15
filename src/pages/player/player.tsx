@@ -24,15 +24,25 @@ export function Player() {
   const [trackedList, setTrackedList] = useState(listId)
   const [chromeVisible, setChromeVisible] = useState(true)
   const [muted, setMuted] = useState(false)
+  const [repeat, setRepeat] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | null>(null)
 
+  // Manual next/prev wrap around the queue.
   const goNext = useCallback(() => {
     setIndex((i) => (queue.length ? (i + 1) % queue.length : 0))
   }, [queue.length])
   const goPrev = useCallback(() => {
     setIndex((i) => (queue.length ? (i - 1 + queue.length) % queue.length : 0))
   }, [queue.length])
+
+  // Auto-advance stops at the end of the queue unless Repeat is on.
+  const handleEnded = useCallback(() => {
+    setIndex((i) => {
+      if (i < queue.length - 1) return i + 1
+      return repeat ? 0 : i
+    })
+  }, [queue.length, repeat])
 
   const {
     containerRef,
@@ -44,7 +54,7 @@ export function Player() {
     toggle,
     seekTo,
     setVolume,
-  } = useYouTubePlayer({ onEnded: goNext })
+  } = useYouTubePlayer({ onEnded: handleEnded })
 
   // Reset the queue position when the playlist changes (render-phase reset).
   if (listId !== trackedList) {
@@ -152,11 +162,13 @@ export function Player() {
           duration={duration}
           playing={playing}
           muted={muted}
+          repeat={repeat}
           onToggle={toggle}
           onPrev={goPrev}
           onNext={goNext}
           onSeek={seekTo}
           onToggleMute={toggleMute}
+          onToggleRepeat={() => setRepeat((r) => !r)}
           onMaximize={maximize}
         />
       </div>
@@ -165,11 +177,33 @@ export function Player() {
         <QueueDrawer queue={queue} playingIndex={index} onPick={setIndex} />
       ) : null}
 
-      {queueState.loading || (!queueState.loading && queue.length === 0) ? (
-        <div className="text-fg-muted pointer-events-none absolute inset-0 grid place-items-center text-[12px] font-semibold tracking-[0.2em] uppercase">
-          {queueState.loading ? "Loading playlist…" : "No playable videos in this playlist."}
-        </div>
+      {queueState.loading ? (
+        <StageMessage>Loading playlist…</StageMessage>
+      ) : queueState.error ? (
+        <StageMessage>
+          <span>{queueState.error}</span>
+          <button
+            type="button"
+            onClick={queueState.reload}
+            className="text-indigo-text mt-3 text-[11px] font-semibold tracking-[0.16em] uppercase"
+          >
+            Retry
+          </button>
+        </StageMessage>
+      ) : queue.length === 0 ? (
+        <StageMessage>No playable videos in this playlist.</StageMessage>
       ) : null}
+    </div>
+  )
+}
+
+/** Centered status overlay on the player stage (loading / error / empty). */
+function StageMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="absolute inset-0 grid place-items-center">
+      <div className="text-fg-muted flex flex-col items-center text-center text-[12px] font-semibold tracking-[0.2em] uppercase">
+        {children}
+      </div>
     </div>
   )
 }

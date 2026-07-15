@@ -42,11 +42,13 @@ export function PlayerControls({
   duration,
   playing,
   muted,
+  repeat,
   onToggle,
   onPrev,
   onNext,
   onSeek,
   onToggleMute,
+  onToggleRepeat,
   onMaximize,
 }: {
   current?: QueueVideo
@@ -54,11 +56,13 @@ export function PlayerControls({
   duration: number
   playing: boolean
   muted: boolean
+  repeat: boolean
   onToggle: () => void
   onPrev: () => void
   onNext: () => void
   onSeek: (seconds: number) => void
   onToggleMute: () => void
+  onToggleRepeat: () => void
   onMaximize: () => void
 }) {
   const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
@@ -145,8 +149,11 @@ export function PlayerControls({
           <GhostButton label="Shuffle">
             <Shuffle className="size-[17px]" />
           </GhostButton>
-          <GhostButton label="Repeat">
-            <Repeat className="size-[17px]" />
+          <GhostButton label={repeat ? "Repeat on" : "Repeat"} onClick={onToggleRepeat}>
+            <Repeat
+              className="size-[17px]"
+              style={{ color: repeat ? "var(--indigo-text)" : undefined }}
+            />
           </GhostButton>
           <GhostButton label={muted ? "Unmute" : "Mute"} onClick={onToggleMute}>
             {muted ? <VolumeX className="size-[17px]" /> : <Volume2 className="size-[17px]" />}
