@@ -79,9 +79,9 @@ export function Matching() {
         setSource(listId, playlistName)
 
         // Match tracks with a small pool of concurrent workers instead of one
-        // at a time. Browsers cap ~6 connections per host, so a pool of 6 keeps
-        // the pipe full without tripping YouTube rate limits. Results stay in
-        // track order; the log streams as each finishes.
+        // at a time. A modest pool (4) keeps the pipe full without hammering
+        // YouTube's rate limits. Results stay in track order; the log streams as
+        // each finishes.
         const results: Mapping[] = new Array(tracks.length)
         let completed = 0
         let cursor = 0
@@ -111,7 +111,7 @@ export function Matching() {
         }
 
         await Promise.all(
-          Array.from({ length: Math.min(6, tracks.length) }, worker)
+          Array.from({ length: Math.min(4, tracks.length) }, worker)
         )
         setMappings(results)
         advanceTimer.current = window.setTimeout(() => navigate("/create/review"), 600)

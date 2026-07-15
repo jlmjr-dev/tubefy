@@ -14,13 +14,19 @@ function pickThumbnail(thumbs?: Thumbnails): string | undefined {
   return thumbs?.medium?.url ?? thumbs?.high?.url ?? thumbs?.default?.url
 }
 
-async function ytGet<T>(path: string): Promise<T> {
+async function ytGet<T>(path: string, attempt = 0): Promise<T> {
   const token = await getYouTubeToken()
   const res = await fetch(`${API}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
-  if (!res.ok) throw new Error(await ytError(res))
-  return res.json() as Promise<T>
+  if (res.ok) return res.json() as Promise<T>
+  // Retry transient failures (rate limit / server hiccup) with backoff. Quota
+  // (403) and other 4xx are not retried.
+  if ((res.status === 429 || res.status >= 500) && attempt < 2) {
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+    return ytGet<T>(path, attempt + 1)
+  }
+  throw new Error(await ytError(res))
 }
 
 async function ytPost<T>(path: string, body: unknown): Promise<T> {
