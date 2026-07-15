@@ -1,7 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 
 import { AppBackground } from "@/components/app-background"
+import { RequireAuth } from "@/components/require-auth"
 import { Callback } from "@/pages/callback/callback"
+import { Home } from "@/pages/home/home"
 import { Login } from "@/pages/login/login"
 
 /**
@@ -17,6 +19,14 @@ export function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/callback" element={<Callback />} />
+          <Route
+            path="/home"
+            element={
+              <RequireAuth>
+                <Home />
+              </RequireAuth>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
