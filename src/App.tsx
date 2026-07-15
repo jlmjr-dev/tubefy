@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom"
 import { AppBackground } from "@/components/app-background"
 import { RequireAuth } from "@/components/require-auth"
 import { Callback } from "@/pages/callback/callback"
+import { CreatePick } from "@/pages/create/create-pick"
 import { Home } from "@/pages/home/home"
 import { Login } from "@/pages/login/login"
 import { Player } from "@/pages/player/player"
@@ -42,6 +43,14 @@ export function App() {
             element={
               <RequireAuth>
                 <Player />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/create"
+            element={
+              <RequireAuth>
+                <CreatePick />
               </RequireAuth>
             }
           />
