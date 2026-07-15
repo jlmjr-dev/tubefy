@@ -32,8 +32,8 @@ export function QueueDrawer({
   onPick: (index: number) => void
 }) {
   return (
-    <div className="absolute top-0 right-0 bottom-0 z-[6] flex">
-      <div className="border-border flex h-full w-[clamp(300px,26vw,362px)] translate-x-[calc(100%-46px)] border-l bg-[oklch(0.13_0.006_107/0.95)] backdrop-blur-[16px] transition-transform duration-[420ms] ease-[cubic-bezier(.4,0,.2,1)] hover:translate-x-0">
+    <div className="pointer-events-none absolute top-0 right-0 bottom-0 z-[6] flex">
+      <div className="border-border pointer-events-auto flex h-full w-[clamp(300px,26vw,362px)] translate-x-[calc(100%-46px)] border-l bg-[oklch(0.13_0.006_107/0.95)] backdrop-blur-[16px] transition-transform duration-[420ms] ease-[cubic-bezier(.4,0,.2,1)] hover:translate-x-0">
         <div className="text-fg-muted flex w-[46px] flex-none flex-col items-center justify-center gap-3.5 border-r border-[var(--border-subtle)]">
           <ListMusic className="size-[18px]" />
           <span className="text-[10px] font-semibold tracking-[0.24em] uppercase [writing-mode:vertical-rl]">
