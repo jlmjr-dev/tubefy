@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Play } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
@@ -18,33 +18,65 @@ export function Player() {
   const listId = params.get("list") ?? ""
 
   const queueState = useAsync(() => getYouTubePlaylistItems(listId), [listId])
-  const queue = queueState.data ?? []
+  const queue = useMemo(() => queueState.data ?? [], [queueState.data])
 
   const [index, setIndex] = useState(0)
   const [trackedList, setTrackedList] = useState(listId)
   const [chromeVisible, setChromeVisible] = useState(true)
-  const [muted, setMuted] = useState(false)
+  const [volume, setVolumeState] = useState(100)
   const [repeat, setRepeat] = useState(false)
+  const [shuffle, setShuffle] = useState(false)
+  const [order, setOrder] = useState<number[]>([])
   const [allUnplayable, setAllUnplayable] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
   const hideTimer = useRef<number | null>(null)
   const skipCount = useRef(0)
+  const lastVolume = useRef(100)
 
-  // Manual next/prev wrap around the queue.
-  const goNext = useCallback(() => {
-    setIndex((i) => (queue.length ? (i + 1) % queue.length : 0))
-  }, [queue.length])
-  const goPrev = useCallback(() => {
-    setIndex((i) => (queue.length ? (i - 1 + queue.length) % queue.length : 0))
-  }, [queue.length])
+  // Move by `dir`, following the shuffle order when it's on (wrapping).
+  const step = useCallback(
+    (dir: 1 | -1) => {
+      setIndex((i) => {
+        if (shuffle && order.length) {
+          const pos = order.indexOf(i)
+          return order[(pos + dir + order.length) % order.length]
+        }
+        return queue.length ? (i + dir + queue.length) % queue.length : 0
+      })
+    },
+    [shuffle, order, queue.length]
+  )
+  const goNext = useCallback(() => step(1), [step])
+  const goPrev = useCallback(() => step(-1), [step])
 
-  // Auto-advance stops at the end of the queue unless Repeat is on.
+  // Auto-advance stops at the end (of the shuffle order or the queue) unless Repeat.
   const handleEnded = useCallback(() => {
     setIndex((i) => {
+      if (shuffle && order.length) {
+        const pos = order.indexOf(i)
+        if (pos < order.length - 1) return order[pos + 1]
+        return repeat ? order[0] : i
+      }
       if (i < queue.length - 1) return i + 1
       return repeat ? 0 : i
     })
-  }, [queue.length, repeat])
+  }, [shuffle, order, queue.length, repeat])
+
+  const toggleShuffle = useCallback(() => {
+    if (shuffle) {
+      setShuffle(false)
+      setOrder([])
+      return
+    }
+    // Keep the current song first, shuffle the rest (Fisher-Yates).
+    const rest = queue.map((_, i) => i).filter((i) => i !== index)
+    for (let i = rest.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[rest[i], rest[j]] = [rest[j], rest[i]]
+    }
+    setShuffle(true)
+    setOrder([index, ...rest])
+  }, [shuffle, queue, index])
 
   // Many official music videos block embedding; skip past unplayable ones, and
   // only give up once the entire queue has failed without anything playing.
@@ -63,10 +95,12 @@ export function Player() {
     setAllUnplayable(false)
   }, [])
 
-  // Reset the queue position when the playlist changes (render-phase reset).
+  // Reset position + shuffle when the playlist changes (render-phase reset).
   if (listId !== trackedList) {
     setTrackedList(listId)
     setIndex(0)
+    setShuffle(false)
+    setOrder([])
   }
 
   const current = queue[index]
@@ -103,12 +137,19 @@ export function Player() {
     }
   }, [])
 
+  const changeVolume = useCallback(
+    (value: number) => {
+      setVolumeState(value)
+      setVolume(value)
+      if (value > 0) lastVolume.current = value
+    },
+    [setVolume]
+  )
   const toggleMute = useCallback(() => {
-    setMuted((m) => {
-      setVolume(m ? 100 : 0)
-      return !m
-    })
-  }, [setVolume])
+    const next = volume > 0 ? 0 : lastVolume.current || 100
+    setVolumeState(next)
+    setVolume(next)
+  }, [volume, setVolume])
 
   const maximize = useCallback(() => {
     stageRef.current?.requestFullscreen?.().catch(() => {})
@@ -180,14 +221,17 @@ export function Player() {
           currentTime={currentTime}
           duration={duration}
           playing={playing}
-          muted={muted}
+          volume={volume}
           repeat={repeat}
+          shuffle={shuffle}
           onToggle={toggle}
           onPrev={goPrev}
           onNext={goNext}
           onSeek={seekTo}
+          onVolumeChange={changeVolume}
           onToggleMute={toggleMute}
           onToggleRepeat={() => setRepeat((r) => !r)}
+          onToggleShuffle={toggleShuffle}
           onMaximize={maximize}
         />
       </div>

@@ -17,10 +17,12 @@ import type { QueueVideo } from "@/lib/types"
 function GhostButton({
   onClick,
   label,
+  active,
   children,
 }: {
   onClick?: () => void
   label: string
+  active?: boolean
   children: React.ReactNode
 }) {
   return (
@@ -28,10 +30,44 @@ function GhostButton({
       type="button"
       onClick={onClick}
       aria-label={label}
+      aria-pressed={active}
       className="flex cursor-pointer p-[5px] text-inherit transition-colors hover:text-[oklch(0.98_0_0)]"
     >
       {children}
     </button>
+  )
+}
+
+/** Mute toggle plus a volume slider that reveals on hover. */
+function VolumeControl({
+  volume,
+  onVolumeChange,
+  onToggleMute,
+}: {
+  volume: number
+  onVolumeChange: (volume: number) => void
+  onToggleMute: () => void
+}) {
+  return (
+    <div className="group/vol flex items-center gap-1.5">
+      <GhostButton label={volume === 0 ? "Unmute" : "Mute"} onClick={onToggleMute}>
+        {volume === 0 ? (
+          <VolumeX className="size-[17px]" />
+        ) : (
+          <Volume2 className="size-[17px]" />
+        )}
+      </GhostButton>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={volume}
+        onChange={(event) => onVolumeChange(Number(event.target.value))}
+        aria-label="Volume"
+        className="h-1 w-0 cursor-pointer opacity-0 transition-[width,opacity] duration-200 group-hover/vol:w-[68px] group-hover/vol:opacity-100"
+        style={{ accentColor: "var(--indigo)" }}
+      />
+    </div>
   )
 }
 
@@ -41,28 +77,34 @@ export function PlayerControls({
   currentTime,
   duration,
   playing,
-  muted,
+  volume,
   repeat,
+  shuffle,
   onToggle,
   onPrev,
   onNext,
   onSeek,
+  onVolumeChange,
   onToggleMute,
   onToggleRepeat,
+  onToggleShuffle,
   onMaximize,
 }: {
   current?: QueueVideo
   currentTime: number
   duration: number
   playing: boolean
-  muted: boolean
+  volume: number
   repeat: boolean
+  shuffle: boolean
   onToggle: () => void
   onPrev: () => void
   onNext: () => void
   onSeek: (seconds: number) => void
+  onVolumeChange: (volume: number) => void
   onToggleMute: () => void
   onToggleRepeat: () => void
+  onToggleShuffle: () => void
   onMaximize: () => void
 }) {
   const progress = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
@@ -146,18 +188,31 @@ export function PlayerControls({
         </div>
 
         <div className="text-fg-muted flex items-center gap-[clamp(8px,1.4vw,16px)]">
-          <GhostButton label="Shuffle">
-            <Shuffle className="size-[17px]" />
+          <GhostButton
+            label={shuffle ? "Shuffle on" : "Shuffle"}
+            active={shuffle}
+            onClick={onToggleShuffle}
+          >
+            <Shuffle
+              className="size-[17px]"
+              style={{ color: shuffle ? "var(--indigo-text)" : undefined }}
+            />
           </GhostButton>
-          <GhostButton label={repeat ? "Repeat on" : "Repeat"} onClick={onToggleRepeat}>
+          <GhostButton
+            label={repeat ? "Repeat on" : "Repeat"}
+            active={repeat}
+            onClick={onToggleRepeat}
+          >
             <Repeat
               className="size-[17px]"
               style={{ color: repeat ? "var(--indigo-text)" : undefined }}
             />
           </GhostButton>
-          <GhostButton label={muted ? "Unmute" : "Mute"} onClick={onToggleMute}>
-            {muted ? <VolumeX className="size-[17px]" /> : <Volume2 className="size-[17px]" />}
-          </GhostButton>
+          <VolumeControl
+            volume={volume}
+            onVolumeChange={onVolumeChange}
+            onToggleMute={onToggleMute}
+          />
           <GhostButton label="Fullscreen" onClick={onMaximize}>
             <Maximize className="size-[17px]" />
           </GhostButton>
