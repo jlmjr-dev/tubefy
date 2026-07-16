@@ -6,6 +6,7 @@ import { BackButton } from "@/shared/components/back-button"
 import { Eyebrow } from "@/shared/components/eyebrow"
 import { useCreate } from "@/features/create/create-context"
 import { config } from "@/shared/lib/config"
+import { messageOf } from "@/shared/lib/errors"
 import { matchTrack } from "@/services/conversion/match-track"
 import { getSpotifyPlaylistName, getSpotifyTracks } from "@/services/spotify/client"
 import type { Confidence, Mapping } from "@/domain/types"
@@ -97,7 +98,7 @@ export function Matching() {
               // One failed lookup shouldn't sink the whole batch, but keep the
               // real reason so we can surface it instead of a silent "no match".
               if (!firstError) {
-                firstError = err instanceof Error ? err.message : String(err)
+                firstError = messageOf(err)
               }
               mapping = { track, candidates: [], chosenIndex: 0, confidence: "review" }
             }
@@ -121,7 +122,7 @@ export function Matching() {
         setMappings(results, firstError)
         advanceTimer.current = window.setTimeout(() => navigate("/create/review"), 600)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Matching failed.")
+        setError(messageOf(err, "Matching failed."))
       }
     }
 

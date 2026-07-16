@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 
 import { Wordmark } from "@/shared/components/wordmark"
 import { Eyebrow } from "@/shared/components/eyebrow"
+import { messageOf } from "@/shared/lib/errors"
 import { useAuth } from "@/features/auth/auth-context"
 import { hasSpotifyRedirect } from "@/services/spotify/auth"
 
@@ -28,7 +29,7 @@ export function Callback() {
     completeSpotifyLogin()
       .then(() => navigate("/", { replace: true }))
       .catch((err) =>
-        setError(err instanceof Error ? err.message : "Authorization failed.")
+        setError(messageOf(err, "Authorization failed."))
       )
   }, [completeSpotifyLogin, navigate])
 

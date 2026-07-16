@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 
+import { messageOf } from "@/shared/lib/errors"
+
 export interface AsyncState<T> {
   data: T | null
   loading: boolean
@@ -35,7 +37,7 @@ export function useAsync<T>(
           setState({
             data: null,
             loading: false,
-            error: err instanceof Error ? err.message : "Failed to load.",
+            error: messageOf(err, "Failed to load."),
           })
         }
       })

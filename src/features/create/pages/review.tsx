@@ -3,6 +3,7 @@ import { Check } from "lucide-react"
 import { Navigate, useNavigate } from "react-router-dom"
 
 import { Eyebrow } from "@/shared/components/eyebrow"
+import { messageOf } from "@/shared/lib/errors"
 import { ScreenHeader } from "@/shared/components/screen-header"
 import { useCreate } from "@/features/create/create-context"
 import { buildYouTubePlaylist } from "@/services/conversion/build-playlist"
@@ -63,7 +64,7 @@ export function Review() {
       })
       navigate("/create/success")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create the playlist.")
+      setError(messageOf(err, "Could not create the playlist."))
       setCreating(false)
     }
   }
