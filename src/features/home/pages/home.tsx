@@ -38,7 +38,7 @@ export function Home() {
             {greetingForNow()}, {firstName}
           </Eyebrow>
           <h1 className="font-heading mb-[clamp(22px,3vw,36px)] text-[clamp(30px,4.4vw,54px)] tracking-[0.02em] uppercase [animation:fadeUp_0.5s_0.05s_both]">
-            What are we doing tonight?
+            What are we doing today?
           </h1>
 
           <div
