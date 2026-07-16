@@ -80,22 +80,26 @@ export function Player() {
         style={chromeStyle}
       >
         <PlayerControls
-          current={current}
-          currentTime={currentTime}
-          duration={duration}
-          playing={playing}
-          volume={volume}
-          repeat={repeat}
-          shuffle={shuffle}
-          onToggle={toggle}
-          onPrev={playback.goPrev}
-          onNext={playback.goNext}
-          onSeek={seekTo}
-          onVolumeChange={changeVolume}
-          onToggleMute={toggleMute}
-          onToggleRepeat={playback.toggleRepeat}
-          onToggleShuffle={playback.toggleShuffle}
-          onMaximize={maximize}
+          transport={{
+            current,
+            currentTime,
+            duration,
+            playing,
+            onToggle: toggle,
+            onPrev: playback.goPrev,
+            onNext: playback.goNext,
+            onSeek: seekTo,
+          }}
+          options={{
+            volume,
+            repeat,
+            shuffle,
+            onVolumeChange: changeVolume,
+            onToggleMute: toggleMute,
+            onToggleRepeat: playback.toggleRepeat,
+            onToggleShuffle: playback.toggleShuffle,
+            onMaximize: maximize,
+          }}
         />
       </div>
 
