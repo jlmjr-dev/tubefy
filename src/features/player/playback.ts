@@ -33,6 +33,23 @@ export function advanceIndex(
   return repeat ? 0 : index
 }
 
+/**
+ * The next index (searching forward, wrapping) whose video is not known to be
+ * unplayable. Returns -1 when every video has failed.
+ */
+export function nextPlayableIndex(
+  current: number,
+  videoIds: string[],
+  unplayable: Set<string>
+): number {
+  const n = videoIds.length
+  for (let step = 1; step <= n; step++) {
+    const candidate = (current + step) % n
+    if (!unplayable.has(videoIds[candidate])) return candidate
+  }
+  return -1
+}
+
 /** A shuffle order that keeps `current` first and Fisher-Yates shuffles the rest. */
 export function buildShuffleOrder(
   length: number,

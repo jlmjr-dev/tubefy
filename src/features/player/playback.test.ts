@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { advanceIndex, buildShuffleOrder, stepIndex } from "@/features/player/playback"
+import {
+  advanceIndex,
+  buildShuffleOrder,
+  nextPlayableIndex,
+  stepIndex,
+} from "@/features/player/playback"
 
 describe("stepIndex", () => {
   it("walks the queue linearly and wraps around", () => {
@@ -36,6 +41,24 @@ describe("advanceIndex", () => {
     expect(advanceIndex(1, 3, order, false)).toBe(2)
     expect(advanceIndex(0, 3, order, false)).toBe(0) // 0 is last in the order
     expect(advanceIndex(0, 3, order, true)).toBe(1) // repeat loops to order[0]
+  })
+})
+
+describe("nextPlayableIndex", () => {
+  const ids = ["a", "b", "c", "d"]
+
+  it("returns the next index when nothing is unplayable", () => {
+    expect(nextPlayableIndex(0, ids, new Set())).toBe(1)
+    expect(nextPlayableIndex(3, ids, new Set())).toBe(0) // wraps
+  })
+
+  it("skips past unplayable videos", () => {
+    expect(nextPlayableIndex(0, ids, new Set(["b", "c"]))).toBe(3)
+    expect(nextPlayableIndex(2, ids, new Set(["d", "a"]))).toBe(1) // wraps past d,a
+  })
+
+  it("returns -1 when every video is unplayable", () => {
+    expect(nextPlayableIndex(0, ids, new Set(ids))).toBe(-1)
   })
 })
 

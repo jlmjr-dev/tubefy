@@ -23,7 +23,7 @@ export function Player() {
   const queue = useMemo(() => queueState.data ?? [], [queueState.data])
 
   const playback = usePlaybackQueue(queue, listId)
-  const { index, current, allUnplayable, shuffle, repeat } = playback
+  const { index, current, settling, allUnplayable, shuffle, repeat } = playback
 
   const {
     containerRef,
@@ -64,6 +64,8 @@ export function Player() {
         containerRef={containerRef}
         ready={ready}
         playing={playing}
+        settling={settling}
+        allUnplayable={allUnplayable}
         current={current}
         onToggle={toggle}
       />
@@ -112,8 +114,6 @@ export function Player() {
         error={queueState.error}
         onRetry={() => queueState.refetch()}
         isEmpty={queue.length === 0}
-        allUnplayable={allUnplayable}
-        currentVideoId={current?.videoId}
       />
     </div>
   )

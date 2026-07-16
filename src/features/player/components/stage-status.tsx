@@ -13,23 +13,20 @@ const linkClass =
   "text-indigo-text mt-3 text-[11px] font-semibold tracking-[0.16em] uppercase"
 
 /**
- * The player stage's status layer. Renders nothing when a video is playing;
- * otherwise the matching loading / error / empty / all-unplayable message.
+ * Queue-level status before any video is on the stage: loading the playlist, a
+ * fetch error, or an empty playlist. Per-video states (paused / skipping /
+ * unplayable) live in PlayerStage.
  */
 export function StageStatus({
   isPending,
   error,
   onRetry,
   isEmpty,
-  allUnplayable,
-  currentVideoId,
 }: {
   isPending: boolean
   error: Error | null
   onRetry: () => void
   isEmpty: boolean
-  allUnplayable: boolean
-  currentVideoId?: string
 }) {
   if (isPending) return <StageMessage>Loading playlist…</StageMessage>
 
@@ -45,22 +42,6 @@ export function StageStatus({
   }
 
   if (isEmpty) return <StageMessage>No playable videos in this playlist.</StageMessage>
-
-  if (allUnplayable && currentVideoId) {
-    return (
-      <StageMessage>
-        <span>These videos can&rsquo;t be embedded here.</span>
-        <a
-          href={`https://www.youtube.com/watch?v=${currentVideoId}`}
-          target="_blank"
-          rel="noreferrer"
-          className={linkClass}
-        >
-          Watch on YouTube
-        </a>
-      </StageMessage>
-    )
-  }
 
   return null
 }

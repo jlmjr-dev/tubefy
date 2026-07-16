@@ -1,5 +1,5 @@
 import type { RefObject } from "react"
-import { Play } from "lucide-react"
+import { ExternalLink, Play, VideoOff } from "lucide-react"
 
 import type { QueueVideo } from "@/domain/types"
 
@@ -20,8 +20,7 @@ function LoadingTitle({ title }: { title?: string }) {
  * cards, none of which the embed lets us remove) with a clean scrim + our own
  * solid-white play glyph.
  */
-function PausedScrim({ show }: { show: boolean }) {
-  if (!show) return null
+function PausedScrim() {
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[oklch(0.06_0.004_107/0.68)]">
       <Play
@@ -33,18 +32,88 @@ function PausedScrim({ show }: { show: boolean }) {
   )
 }
 
+/** Opaque notice shown while skipping past a video that can't be embedded, so
+ * the viewer never sees YouTube's raw error flash by. */
+function SkipNotice() {
+  return (
+    <div className="pointer-events-none absolute inset-0 grid place-items-center bg-stage">
+      <div className="flex flex-col items-center gap-3">
+        <span className="size-5 animate-[spin_0.7s_linear_infinite] rounded-full border-2 border-[var(--fg-fainter)] border-t-transparent" />
+        <div className="text-fg-muted text-[11px] font-semibold tracking-[0.2em] uppercase">
+          Skipping a video that can&rsquo;t play here
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Opaque, readable end state when nothing in the queue can be embedded. */
+function UnplayableNotice({ videoId }: { videoId?: string }) {
+  return (
+    <div className="absolute inset-0 grid place-items-center bg-stage px-6 text-center">
+      <div className="flex max-w-[440px] flex-col items-center gap-4">
+        <VideoOff className="text-fg-fainter size-8" />
+        <div>
+          <div className="font-heading text-[clamp(18px,2.4vw,26px)] tracking-[0.04em] uppercase">
+            Can&rsquo;t play these here
+          </div>
+          <p className="text-fg-faint mt-2 text-[12px] leading-[1.55]">
+            Their owners disabled embedding, so these videos only play on YouTube.
+          </p>
+        </div>
+        {videoId ? (
+          <a
+            href={`https://www.youtube.com/watch?v=${videoId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-indigo text-indigo-on inline-flex h-11 items-center gap-2 px-5 text-[11px] font-semibold tracking-[0.18em] uppercase transition-[filter] hover:brightness-110"
+          >
+            Watch on YouTube
+            <ExternalLink className="size-[15px]" />
+          </a>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+/** Picks the one stage overlay that applies, most urgent first. */
+function StageOverlay({
+  ready,
+  playing,
+  settling,
+  allUnplayable,
+  current,
+}: {
+  ready: boolean
+  playing: boolean
+  settling: boolean
+  allUnplayable: boolean
+  current?: QueueVideo
+}) {
+  if (allUnplayable) return <UnplayableNotice videoId={current?.videoId} />
+  if (settling) return <SkipNotice />
+  if (!ready) return <LoadingTitle title={current?.title} />
+  if (!playing) return <PausedScrim />
+  return null
+}
+
 /** The 16:9 video stage: the YouTube mount, a click-to-toggle overlay, and the
- * pre-ready title / paused scrim that hide the embed's own chrome. */
+ * pre-ready / paused / skipping / unplayable overlays that hide the embed's UI. */
 export function PlayerStage({
   containerRef,
   ready,
   playing,
+  settling,
+  allUnplayable,
   current,
   onToggle,
 }: {
   containerRef: RefObject<HTMLDivElement | null>
   ready: boolean
   playing: boolean
+  settling: boolean
+  allUnplayable: boolean
   current?: QueueVideo
   onToggle: () => void
 }) {
@@ -60,8 +129,13 @@ export function PlayerStage({
       <div className="pointer-events-none absolute top-4 left-[18px] text-[9px] font-semibold tracking-[0.28em] text-[oklch(0.85_0_0/0.55)] uppercase">
         {"▶"} YouTube
       </div>
-      <LoadingTitle title={!ready ? current?.title : undefined} />
-      <PausedScrim show={ready && !playing} />
+      <StageOverlay
+        ready={ready}
+        playing={playing}
+        settling={settling}
+        allUnplayable={allUnplayable}
+        current={current}
+      />
     </div>
   )
 }
