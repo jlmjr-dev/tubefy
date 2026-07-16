@@ -1,4 +1,5 @@
 import { config } from "@/shared/lib/config"
+import { clearTokens, isExpired, loadTokens, saveTokens } from "@/shared/lib/storage"
 import type { PlatformProfile } from "@/domain/types"
 import type { TokenClient, TokenResponse } from "@/types/google-gsi"
 
@@ -12,28 +13,6 @@ import type { TokenClient, TokenResponse } from "@/types/google-gsi"
 const GSI_SRC = "https://accounts.google.com/gsi/client"
 const TOKEN_KEY = "tubefy.youtube.token"
 const API = "https://www.googleapis.com/youtube/v3"
-
-interface YouTubeToken {
-  accessToken: string
-  expiresAt: number
-}
-
-function loadToken(): YouTubeToken | null {
-  try {
-    const raw = localStorage.getItem(TOKEN_KEY)
-    return raw ? (JSON.parse(raw) as YouTubeToken) : null
-  } catch {
-    return null
-  }
-}
-
-function saveToken(token: YouTubeToken): void {
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(token))
-}
-
-function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
-}
 
 let gsiPromise: Promise<void> | null = null
 
@@ -102,7 +81,7 @@ function requestToken(prompt: "" | "consent"): Promise<TokenResponse> {
 /** Interactive connect: prompts the account picker / consent the first time. */
 export async function connectYouTube(): Promise<void> {
   const response = await requestToken("")
-  saveToken({
+  saveTokens(TOKEN_KEY, {
     accessToken: response.access_token,
     expiresAt: Date.now() + response.expires_in * 1000,
   })
@@ -110,14 +89,14 @@ export async function connectYouTube(): Promise<void> {
 
 /** Return a valid access token, renewing silently when it has expired. */
 export async function getYouTubeToken(): Promise<string> {
-  const token = loadToken()
-  if (token && token.expiresAt - 60_000 > Date.now()) return token.accessToken
+  const tokens = loadTokens(TOKEN_KEY)
+  if (tokens && !isExpired(tokens)) return tokens.accessToken
   const response = await requestToken("")
   const next = {
     accessToken: response.access_token,
     expiresAt: Date.now() + response.expires_in * 1000,
   }
-  saveToken(next)
+  saveTokens(TOKEN_KEY, next)
   return next.accessToken
 }
 
@@ -125,15 +104,15 @@ export function isYouTubeConnected(): boolean {
   // Optimistic, like Spotify's refresh-token check: a stored token is renewable
   // via a silent GIS request, so treat its presence (not its freshness) as
   // connected. getYouTubeToken() drives the actual renew / disconnect-on-failure.
-  return loadToken() !== null
+  return loadTokens(TOKEN_KEY) !== null
 }
 
 export function disconnectYouTube(): void {
-  const token = loadToken()
-  if (token && window.google?.accounts?.oauth2) {
-    window.google.accounts.oauth2.revoke(token.accessToken)
+  const tokens = loadTokens(TOKEN_KEY)
+  if (tokens && window.google?.accounts?.oauth2) {
+    window.google.accounts.oauth2.revoke(tokens.accessToken)
   }
-  clearToken()
+  clearTokens(TOKEN_KEY)
 }
 
 export async function fetchYouTubeProfile(): Promise<PlatformProfile> {
