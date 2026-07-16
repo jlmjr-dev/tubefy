@@ -7,11 +7,11 @@ import { PlaylistCard } from "@/shared/components/playlist-card"
 import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { SectionHeading } from "@/shared/components/section-heading"
 import { TopBar } from "@/shared/components/top-bar"
-import { useAuth } from "@/context/auth-context"
-import { useAsync } from "@/hooks/use-async"
+import { useAuth } from "@/features/auth/auth-context"
+import { useAsync } from "@/shared/hooks/use-async"
 import { getSpotifyPlaylists } from "@/services/spotify/client"
 import { getYouTubePlaylists } from "@/services/youtube/client"
-import { ActionCard } from "@/pages/home/action-card"
+import { ActionCard } from "@/features/home/components/action-card"
 
 function greetingForNow(): string {
   const hour = new Date().getHours()

@@ -1,7 +1,7 @@
 import { AudioLines, Check, MonitorPlay, type LucideIcon } from "lucide-react"
 
 import { CoverArt } from "@/shared/components/cover-art"
-import type { PlatformAuth } from "@/context/auth-context"
+import type { PlatformAuth } from "@/features/auth/auth-context"
 import type { Platform } from "@/domain/types"
 import { cn } from "@/shared/lib/utils"
 

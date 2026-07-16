@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 
 import { Wordmark } from "@/shared/components/wordmark"
 import { Eyebrow } from "@/shared/components/eyebrow"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/features/auth/auth-context"
 import { hasSpotifyRedirect } from "@/services/spotify/auth"
 
 /**

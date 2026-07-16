@@ -1,4 +1,4 @@
-import type { AsyncState } from "@/hooks/use-async"
+import type { AsyncState } from "@/shared/hooks/use-async"
 import { cn } from "@/shared/lib/utils"
 
 /**

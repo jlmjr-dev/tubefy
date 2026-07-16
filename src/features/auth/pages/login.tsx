@@ -2,8 +2,8 @@ import { ArrowRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 import { Wordmark } from "@/shared/components/wordmark"
-import { useAuth } from "@/context/auth-context"
-import { ConnectCard } from "@/pages/login/connect-card"
+import { useAuth } from "@/features/auth/auth-context"
+import { ConnectCard } from "@/features/auth/components/connect-card"
 
 /** The center bridge between the two cards; lights up indigo when both connect. */
 function Bridge({ both }: { both: boolean }) {

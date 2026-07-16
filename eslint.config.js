@@ -30,7 +30,7 @@ export default defineConfig([
   {
     // Data-loading and imperative media hooks legitimately set state from
     // async callbacks and effects; the compiler rule does not fit them.
-    files: ['src/hooks/**/*.ts'],
+    files: ['src/**/hooks/**/*.{ts,tsx}'],
     rules: {
       'react-hooks/set-state-in-effect': 'off',
     },

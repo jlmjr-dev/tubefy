@@ -3,8 +3,8 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 
 import "./index.css"
-import { App } from "@/App"
-import { AuthProvider } from "@/context/auth-context"
+import { App } from "@/app/App"
+import { AppProviders } from "@/app/providers"
 
 // Spotify's OAuth requires the loopback IP, not `localhost`. Keep the app on
 // 127.0.0.1 so the redirect URI (and the Google JS origin) always line up with
@@ -16,9 +16,9 @@ if (window.location.hostname === "localhost") {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
+      <AppProviders>
         <App />
-      </AuthProvider>
+      </AppProviders>
     </BrowserRouter>
   </StrictMode>
 )

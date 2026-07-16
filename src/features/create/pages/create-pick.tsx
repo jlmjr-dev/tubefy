@@ -1,24 +1,30 @@
 import { useNavigate } from "react-router-dom"
 
-import { PlayBadge } from "@/shared/components/cover-overlays"
+import { BuildPill } from "@/shared/components/cover-overlays"
 import { Eyebrow } from "@/shared/components/eyebrow"
 import { PlaylistCard } from "@/shared/components/playlist-card"
 import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { ScreenHeader } from "@/shared/components/screen-header"
-import { useAsync } from "@/hooks/use-async"
-import { getYouTubePlaylists } from "@/services/youtube/client"
+import { useAsync } from "@/shared/hooks/use-async"
+import { getSpotifyPlaylists } from "@/services/spotify/client"
 
-/** Watch browse: pick a YouTube playlist to play. */
-export function WatchBrowse() {
+/** Create pick: choose a Spotify playlist to convert into a YouTube video mix. */
+export function CreatePick() {
   const navigate = useNavigate()
-  const playlists = useAsync(() => getYouTubePlaylists(), [])
+  const playlists = useAsync(() => getSpotifyPlaylists(), [])
 
   return (
     <div className="absolute inset-0 flex flex-col">
       <ScreenHeader
         onBack={() => navigate("/home")}
-        eyebrow={<Eyebrow>Watch · YouTube</Eyebrow>}
-        title="Your playlists"
+        eyebrow={
+          <div className="flex items-center gap-[9px]">
+            <span className="bg-spotify size-[7px]" />
+            <Eyebrow>Create · Spotify</Eyebrow>
+          </div>
+        }
+        title="Choose a playlist"
+        subcopy="Pick one and Tubefy builds a matching music-video playlist on your YouTube."
         right={
           playlists.data ? (
             <div className="text-fg-faint text-[11px] font-semibold tracking-[0.2em] uppercase">
@@ -34,7 +40,7 @@ export function WatchBrowse() {
             columnMin="224px"
             aspectClassName="aspect-square"
             onReload={playlists.reload}
-            emptyLabel="No YouTube playlists yet."
+            emptyLabel="No Spotify playlists yet."
           >
             {(items) =>
               items.map((playlist, i) => (
@@ -43,14 +49,22 @@ export function WatchBrowse() {
                   seed={playlist.title}
                   thumbnailUrl={playlist.thumbnailUrl}
                   title={playlist.title}
+                  meta={`${playlist.owner ?? "You"} · ${playlist.itemCount} songs`}
                   animationDelay={`${i * 0.03}s`}
                   topLeft={
-                    <span className="text-[9px] font-semibold tracking-[0.2em] text-[oklch(0.85_0_0/0.7)] uppercase">
-                      {playlist.itemCount} videos
-                    </span>
+                    <div className="flex items-center gap-[6px]">
+                      <span className="bg-spotify size-[6px]" />
+                      <span className="text-[9px] font-semibold tracking-[0.2em] text-[oklch(0.85_0_0/0.7)] uppercase">
+                        Spotify
+                      </span>
+                    </div>
                   }
-                  overlay={<PlayBadge size={54} iconSize={22} />}
-                  onClick={() => navigate(`/player?list=${playlist.id}`)}
+                  overlay={<BuildPill />}
+                  onClick={() =>
+                    navigate(`/create/matching?list=${playlist.id}`, {
+                      state: { name: playlist.title },
+                    })
+                  }
                 />
               ))
             }

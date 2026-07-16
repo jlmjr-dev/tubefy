@@ -1,7 +1,7 @@
 import { CoverArt } from "@/shared/components/cover-art"
 import { PlatformTag } from "@/shared/components/platform-tag"
 import { Wordmark } from "@/shared/components/wordmark"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/features/auth/auth-context"
 
 /** Home's top bar: wordmark left; connected platform chips + user avatar right. */
 export function TopBar() {
