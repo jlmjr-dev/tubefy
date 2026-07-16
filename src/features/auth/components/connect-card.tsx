@@ -39,6 +39,71 @@ function Spinner() {
   )
 }
 
+/** Connected state: the linked account's avatar, name, and playlist count. */
+function ConnectedProfile({ auth, meta }: { auth: PlatformAuth; meta: PlatformMeta }) {
+  return (
+    <div className="mt-auto flex items-center gap-3">
+      <CoverArt
+        seed={auth.profile?.name ?? meta.title}
+        src={auth.profile?.avatarUrl}
+        className="size-10"
+        monogramClassName="text-[12px]"
+      />
+      <div className="min-w-0">
+        <div className="truncate text-[13px] font-semibold tracking-[0.02em]">
+          {auth.profile?.name ?? "Connected"}
+        </div>
+        <div className="text-fg-faint text-[11px]">
+          Connected
+          {auth.profile?.playlistCount != null
+            ? ` · ${auth.profile.playlistCount} playlists`
+            : ""}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Idle / connecting state: the pitch, any error, and the connect button. */
+function ConnectPrompt({
+  auth,
+  meta,
+  onConnect,
+}: {
+  auth: PlatformAuth
+  meta: PlatformMeta
+  onConnect: () => void
+}) {
+  return (
+    <>
+      <div className="text-fg-muted text-[13px] leading-[1.55]">{meta.copy}</div>
+      {auth.error ? (
+        <div className="text-[12px] leading-[1.45]" style={{ color: "var(--brand)" }}>
+          {auth.error}
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={onConnect}
+        disabled={auth.loading}
+        className={cn(
+          "mt-auto inline-flex h-11 items-center justify-center gap-[9px] px-5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-[background,transform] active:translate-y-px disabled:opacity-70",
+          "hover:bg-[color-mix(in_oklch,var(--brand)_12%,transparent)]"
+        )}
+        style={{ color: "var(--brand)", border: "1px solid var(--brand)" }}
+      >
+        {auth.loading ? (
+          <>
+            <Spinner /> Connecting
+          </>
+        ) : (
+          `Connect ${meta.title}`
+        )}
+      </button>
+    </>
+  )
+}
+
 /**
  * One platform's connect panel on the login gate. Drives its border, check badge,
  * and body off the auth state: idle -> connecting -> connected. The brand color
@@ -98,52 +163,9 @@ export function ConnectCard({
       </div>
 
       {auth.connected ? (
-        <div className="mt-auto flex items-center gap-3">
-          <CoverArt
-            seed={auth.profile?.name ?? meta.title}
-            src={auth.profile?.avatarUrl}
-            className="size-10"
-            monogramClassName="text-[12px]"
-          />
-          <div className="min-w-0">
-            <div className="truncate text-[13px] font-semibold tracking-[0.02em]">
-              {auth.profile?.name ?? "Connected"}
-            </div>
-            <div className="text-fg-faint text-[11px]">
-              Connected
-              {auth.profile?.playlistCount != null
-                ? ` · ${auth.profile.playlistCount} playlists`
-                : ""}
-            </div>
-          </div>
-        </div>
+        <ConnectedProfile auth={auth} meta={meta} />
       ) : (
-        <>
-          <div className="text-fg-muted text-[13px] leading-[1.55]">{meta.copy}</div>
-          {auth.error ? (
-            <div className="text-[12px] leading-[1.45]" style={{ color: "var(--brand)" }}>
-              {auth.error}
-            </div>
-          ) : null}
-          <button
-            type="button"
-            onClick={onConnect}
-            disabled={auth.loading}
-            className={cn(
-              "mt-auto inline-flex h-11 items-center justify-center gap-[9px] px-5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-[background,transform] active:translate-y-px disabled:opacity-70",
-              "hover:bg-[color-mix(in_oklch,var(--brand)_12%,transparent)]"
-            )}
-            style={{ color: "var(--brand)", border: "1px solid var(--brand)" }}
-          >
-            {auth.loading ? (
-              <>
-                <Spinner /> Connecting
-              </>
-            ) : (
-              `Connect ${meta.title}`
-            )}
-          </button>
-        </>
+        <ConnectPrompt auth={auth} meta={meta} onConnect={onConnect} />
       )}
     </div>
   )
