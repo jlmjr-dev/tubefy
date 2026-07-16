@@ -1,26 +1,26 @@
 import type { Confidence, Track, VideoCandidate } from "@/domain/types"
 
 /**
- * Heuristics for picking the right music video for a Spotify track. We score each
- * YouTube candidate on: duration proximity, channel type (Official Artist / VEVO
- * / "- Topic" art tracks beat fan uploads), title similarity, an explicit
- * "official video" signal in the title, and a heavy penalty for covers /
- * karaoke and other non-canonical variants (live, acoustic, remix, ...) so the
- * canonical official upload wins.
+ * Heuristics for picking the right music video for a Spotify track, tuned for a
+ * WATCH playlist: the artist's official music video should win even when its
+ * length differs from the album cut (videos add intros/outros). So we reward
+ * official channels and explicit "official ... video" titles heavily, treat
+ * duration as a gentle sanity check (audio / remaster / random album cuts often
+ * match the exact length yet are not the video), demote audio/lyrics-only
+ * uploads, and sink covers / karaoke / live / remaster variants.
  */
 
-// Phrases that mark the real, label-published upload.
-const OFFICIAL_TITLE_PHRASES = [
+// The actual music video: what a watch playlist wants. Decisive.
+const OFFICIAL_VIDEO_PHRASES = [
   "official music video",
   "official video",
-  "official audio",
-  "official lyric video",
-  "official visualizer",
   "official hd video",
+  "official 4k video",
+  "official mv",
+  "official visualizer",
 ]
 
-// Covers / karaoke / tributes: not the original recording. Penalized hard so
-// they sink below any real match and are never auto-selected.
+// Covers / karaoke / tributes: not the original recording. Sunk.
 const COVER_KEYWORDS = [
   "cover",
   "covered",
@@ -32,7 +32,8 @@ const COVER_KEYWORDS = [
   "originally by",
 ]
 
-// Non-canonical variants of the real recording.
+// Non-canonical versions of the real recording; a watch playlist wants the
+// studio video, not a live/remaster/TV performance.
 const VARIANT_KEYWORDS = [
   "live",
   "acoustic",
@@ -45,7 +46,16 @@ const VARIANT_KEYWORDS = [
   "instrumental",
   "mashup",
   "parody",
+  "top of the pops",
+  "remaster",
+  "remastered",
+  "re-recorded",
+  "rerecorded",
 ]
+
+// Official but not the video (audio / lyric uploads): acceptable as a fallback,
+// but demoted so a real music video always wins.
+const NON_VIDEO_KEYWORDS = ["audio", "lyric", "lyrics"]
 
 function tokenize(text: string): string[] {
   return text
@@ -86,9 +96,9 @@ function isOfficialChannel(track: Track, candidate: VideoCandidate): boolean {
   return isTopic || isVevo || isOfficialArtist
 }
 
-function hasOfficialTitle(candidate: VideoCandidate): boolean {
+function isOfficialVideoTitle(candidate: VideoCandidate): boolean {
   const title = candidate.title.toLowerCase()
-  return OFFICIAL_TITLE_PHRASES.some((phrase) => title.includes(phrase))
+  return OFFICIAL_VIDEO_PHRASES.some((phrase) => title.includes(phrase))
 }
 
 /** A keyword present in the candidate title but not implied by the track. */
@@ -107,37 +117,53 @@ function isVariant(track: Track, candidate: VideoCandidate): boolean {
   return unimpliedKeyword(track, candidate, VARIANT_KEYWORDS)
 }
 
+function isAudioOrLyrics(track: Track, candidate: VideoCandidate): boolean {
+  return unimpliedKeyword(track, candidate, NON_VIDEO_KEYWORDS)
+}
+
 /** Higher is better. Used to rank candidates for one track. */
 export function scoreCandidate(track: Track, candidate: VideoCandidate): number {
   let score = 0
 
+  // Duration is a gentle sanity check, not the deciding factor: official videos
+  // are often 30-60s longer than the album cut, so only punish extreme gaps.
   const trackSec = track.durationMs / 1000
   const diff = Math.abs(candidate.durationSec - trackSec)
-  if (diff <= 2) score += 50
-  else if (diff <= 5) score += 30
-  else if (diff <= 12) score += 10
-  else score -= 20
+  if (diff <= 5) score += 12
+  else if (diff <= 20) score += 6
+  else if (diff <= 60) score += 0
+  else score -= 25
 
-  score += isOfficialChannel(track, candidate) ? 34 : -6
+  score += isOfficialChannel(track, candidate) ? 40 : -15
 
-  score += titleSimilarity(track, candidate) * 25
+  score += titleSimilarity(track, candidate) * 20
 
-  // Prefer the explicitly-official upload; a bare "official" word counts less.
-  if (hasOfficialTitle(candidate)) score += 22
-  else if (containsWord(candidate.title, "official")) score += 6
+  // An explicit "official ... video" title is the strongest "this is THE video"
+  // signal; a bare "official" word counts a little.
+  if (isOfficialVideoTitle(candidate)) score += 45
+  else if (containsWord(candidate.title, "official")) score += 8
 
-  // Sink covers/karaoke far below any real match; lightly demote other variants.
-  if (isCover(track, candidate)) score -= 45
-  if (isVariant(track, candidate)) score -= 16
+  // Official-but-not-the-video (audio / lyrics) loses to a real music video.
+  if (isAudioOrLyrics(track, candidate)) score -= 12
+
+  // Sink covers/karaoke far below any real match; demote other variants.
+  if (isCover(track, candidate)) score -= 60
+  if (isVariant(track, candidate)) score -= 22
 
   return score
 }
 
 /** Whether the chosen candidate is a confident match or one to review. */
 export function confidenceFor(track: Track, candidate: VideoCandidate): Confidence {
-  const durationOk = Math.abs(candidate.durationSec - track.durationMs / 1000) <= 3
   const official = isOfficialChannel(track, candidate)
   const similar = titleSimilarity(track, candidate) >= 0.6
-  const clean = !isCover(track, candidate) && !isVariant(track, candidate)
-  return durationOk && official && similar && clean ? "strong" : "review"
+  const video = isOfficialVideoTitle(candidate)
+  const durationOk = Math.abs(candidate.durationSec - track.durationMs / 1000) <= 15
+  const clean =
+    !isCover(track, candidate) &&
+    !isVariant(track, candidate) &&
+    !isAudioOrLyrics(track, candidate)
+  // Confident when it's an official, clean match that is either the labelled
+  // video or close to the album length.
+  return official && similar && clean && (video || durationOk) ? "strong" : "review"
 }

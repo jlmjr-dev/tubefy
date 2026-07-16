@@ -91,6 +91,72 @@ describe("scoreCandidate", () => {
   })
 })
 
+describe("scoreCandidate prefers the official music video", () => {
+  it("beats a '- Topic' remaster of the same length (All Out of Love)", () => {
+    const t = track({ title: "All Out of Love", primaryArtist: "Air Supply", durationMs: 243_000 })
+    const hd = candidate({
+      title: "Air Supply - All Out Of Love (Official HD Video)",
+      channelTitle: "AirSupplyVEVO",
+      durationSec: 233,
+    })
+    const topic = candidate({
+      title: "All Out Of Love (Digitally Remastered 1999)",
+      channelTitle: "Air Supply - Topic",
+      durationSec: 242,
+    })
+    expect(scoreCandidate(t, hd)).toBeGreaterThan(scoreCandidate(t, topic))
+  })
+
+  it("beats a random uploader's album-length cut (Shout)", () => {
+    const t = track({ title: "Shout", primaryArtist: "Tears For Fears", durationMs: 394_000 })
+    const official = candidate({
+      title: "Tears For Fears - Shout (Official Music Video)",
+      channelTitle: "TearsForFearsVEVO",
+      durationSec: 360,
+    })
+    const random = candidate({
+      title: "Shout - Tears For Fears",
+      channelTitle: "maumau1968",
+      durationSec: 392,
+    })
+    expect(scoreCandidate(t, official)).toBeGreaterThan(scoreCandidate(t, random))
+  })
+
+  it("beats the official audio upload (Time After Time)", () => {
+    const t = track({ title: "Time After Time", primaryArtist: "Cyndi Lauper", durationMs: 241_000 })
+    const hd = candidate({
+      title: "Cyndi Lauper - Time After Time (Official HD Video)",
+      channelTitle: "CyndiLauperVEVO",
+      durationSec: 297,
+    })
+    const audio = candidate({
+      title: "Cyndi Lauper - Time After Time (Audio)",
+      channelTitle: "CyndiLauperVEVO",
+      durationSec: 243,
+    })
+    expect(scoreCandidate(t, hd)).toBeGreaterThan(scoreCandidate(t, audio))
+  })
+
+  it("beats a Top of the Pops performance (Total Eclipse of the Heart)", () => {
+    const t = track({
+      title: "Total Eclipse of the Heart",
+      primaryArtist: "Bonnie Tyler",
+      durationMs: 267_000,
+    })
+    const video = candidate({
+      title: "Bonnie Tyler - Total Eclipse of the Heart (Turn Around) (Official Video)",
+      channelTitle: "bonnietylerVEVO",
+      durationSec: 334,
+    })
+    const totp = candidate({
+      title: "Bonnie Tyler - Total Eclipse of the Heart [Top Of The Pops 1984]",
+      channelTitle: "bonnietylerVEVO",
+      durationSec: 268,
+    })
+    expect(scoreCandidate(t, video)).toBeGreaterThan(scoreCandidate(t, totp))
+  })
+})
+
 describe("confidenceFor", () => {
   it("is strong for an official, duration-accurate, on-title, clean match", () => {
     expect(confidenceFor(track(), candidate())).toBe("strong")
