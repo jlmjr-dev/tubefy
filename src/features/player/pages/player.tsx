@@ -1,15 +1,16 @@
 import { useCallback, useMemo, useRef } from "react"
-import { Play } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
-import { BackButton } from "@/shared/components/back-button"
 import { useYouTubePlaylistItems } from "@/services/queries/use-youtube-playlist-items"
 import { useAutoHideChrome } from "@/features/player/hooks/use-auto-hide-chrome"
 import { usePlaybackQueue } from "@/features/player/hooks/use-playback-queue"
 import { useVolume } from "@/features/player/hooks/use-volume"
 import { useYouTubePlayer } from "@/features/player/hooks/use-youtube-player"
 import { PlayerControls } from "@/features/player/components/player-controls"
+import { PlayerStage } from "@/features/player/components/player-stage"
+import { PlayerTopBar } from "@/features/player/components/player-top-bar"
 import { QueueDrawer } from "@/features/player/components/queue-drawer"
+import { StageStatus } from "@/features/player/components/stage-status"
 
 /** Focus-mode player: YouTube video with custom chrome, queue, and auto-advance. */
 export function Player() {
@@ -59,51 +60,20 @@ export function Player() {
       onMouseLeave={hideChrome}
       className="bg-stage absolute inset-0 flex items-center justify-center overflow-hidden"
     >
-      <div className="relative aspect-video w-[min(92vw,calc((100vh_-_40px)_*_1.777))] border border-[var(--border-subtle)] bg-black">
-        <div ref={containerRef} className="size-full" />
-        <button
-          type="button"
-          aria-label={playing ? "Pause" : "Play"}
-          onClick={toggle}
-          className="absolute inset-0 cursor-pointer"
-        />
-        <div className="pointer-events-none absolute top-4 left-[18px] text-[9px] font-semibold tracking-[0.28em] text-[oklch(0.85_0_0/0.55)] uppercase">
-          {"▶"} YouTube
-        </div>
-        {!ready && current ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-5 text-center">
-            <div className="font-heading text-[clamp(22px,3vw,40px)] tracking-[0.05em] text-[oklch(1_0_0/0.2)] uppercase">
-              {current.title}
-            </div>
-          </div>
-        ) : null}
-        {ready && !playing ? (
-          // Cover YouTube's paused UI (its play button, title, share, and
-          // "More videos" cards, none of which the embed lets us remove) with a
-          // clean scrim + our own solid-white play glyph.
-          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-[oklch(0.06_0.004_107/0.68)]">
-            <Play
-              className="size-20 text-white drop-shadow-[0_1px_6px_oklch(0_0_0/0.45)]"
-              fill="currentColor"
-              strokeWidth={0}
-            />
-          </div>
-        ) : null}
-      </div>
+      <PlayerStage
+        containerRef={containerRef}
+        ready={ready}
+        playing={playing}
+        current={current}
+        onToggle={toggle}
+      />
 
-      <div
-        className="absolute top-0 right-0 left-0 flex items-center justify-between gap-4 bg-[linear-gradient(oklch(0.075_0.004_107/0.85),transparent)] px-[clamp(20px,4vw,54px)] py-[clamp(16px,2.4vw,26px)] transition-opacity duration-[350ms]"
+      <PlayerTopBar
+        index={index}
+        total={queue.length}
+        onBack={() => navigate("/watch")}
         style={chromeStyle}
-      >
-        <BackButton onClick={() => navigate("/watch")} label="Playlists" />
-        <div className="text-fg-faint text-[9px] font-semibold tracking-[0.3em] uppercase">
-          Now playing · {String(index + 1).padStart(2, "0")} /{" "}
-          {String(queue.length).padStart(2, "0")}
-        </div>
-        <div className="text-fg-fainter text-[9px] font-semibold tracking-[0.24em] uppercase">
-          Focus mode
-        </div>
-      </div>
+      />
 
       <div
         className="absolute right-0 bottom-0 left-0 bg-[linear-gradient(transparent,oklch(0.075_0.004_107/0.94))] px-[clamp(20px,4vw,54px)] pt-[clamp(18px,2.6vw,30px)] pb-[clamp(28px,4vw,42px)] transition-opacity duration-[350ms]"
@@ -133,45 +103,14 @@ export function Player() {
         <QueueDrawer queue={queue} playingIndex={index} onPick={playback.select} />
       ) : null}
 
-      {queueState.isPending ? (
-        <StageMessage>Loading playlist…</StageMessage>
-      ) : queueState.error ? (
-        <StageMessage>
-          <span>{queueState.error.message}</span>
-          <button
-            type="button"
-            onClick={() => queueState.refetch()}
-            className="text-indigo-text mt-3 text-[11px] font-semibold tracking-[0.16em] uppercase"
-          >
-            Retry
-          </button>
-        </StageMessage>
-      ) : queue.length === 0 ? (
-        <StageMessage>No playable videos in this playlist.</StageMessage>
-      ) : allUnplayable && current ? (
-        <StageMessage>
-          <span>These videos can&rsquo;t be embedded here.</span>
-          <a
-            href={`https://www.youtube.com/watch?v=${current.videoId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-indigo-text mt-3 text-[11px] font-semibold tracking-[0.16em] uppercase"
-          >
-            Watch on YouTube
-          </a>
-        </StageMessage>
-      ) : null}
-    </div>
-  )
-}
-
-/** Centered status overlay on the player stage (loading / error / empty). */
-function StageMessage({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="pointer-events-none absolute inset-0 grid place-items-center">
-      <div className="text-fg-muted pointer-events-auto flex flex-col items-center text-center text-[12px] font-semibold tracking-[0.2em] uppercase">
-        {children}
-      </div>
+      <StageStatus
+        isPending={queueState.isPending}
+        error={queueState.error}
+        onRetry={() => queueState.refetch()}
+        isEmpty={queue.length === 0}
+        allUnplayable={allUnplayable}
+        currentVideoId={current?.videoId}
+      />
     </div>
   )
 }
