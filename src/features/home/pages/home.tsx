@@ -8,9 +8,8 @@ import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { SectionHeading } from "@/shared/components/section-heading"
 import { TopBar } from "@/shared/components/top-bar"
 import { useAuth } from "@/features/auth/auth-context"
-import { useAsync } from "@/shared/hooks/use-async"
-import { getSpotifyPlaylists } from "@/services/spotify/client"
-import { getYouTubePlaylists } from "@/services/youtube/client"
+import { useSpotifyPlaylists } from "@/services/queries/use-spotify-playlists"
+import { useYouTubePlaylists } from "@/services/queries/use-youtube-playlists"
 import { ActionCard } from "@/features/home/components/action-card"
 
 function greetingForNow(): string {
@@ -32,8 +31,8 @@ export function Home() {
   const navigate = useNavigate()
   const { spotify, youtube } = useAuth()
 
-  const youtubePlaylists = useAsync(() => getYouTubePlaylists(), [])
-  const spotifyPlaylists = useAsync(() => getSpotifyPlaylists(), [])
+  const youtubePlaylists = useYouTubePlaylists()
+  const spotifyPlaylists = useSpotifyPlaylists()
 
   const firstName = (spotify.profile?.name ?? youtube.profile?.name ?? "there").split(
     " "
@@ -91,7 +90,7 @@ export function Home() {
             state={youtubePlaylists}
             columnMin="178px"
             aspectClassName="aspect-[16/10]"
-            onReload={youtubePlaylists.reload}
+            onReload={youtubePlaylists.refetch}
             emptyLabel="No YouTube playlists yet."
           >
             {(items) =>
@@ -122,7 +121,7 @@ export function Home() {
             state={spotifyPlaylists}
             columnMin="178px"
             aspectClassName="aspect-[16/10]"
-            onReload={spotifyPlaylists.reload}
+            onReload={spotifyPlaylists.refetch}
             emptyLabel="No Spotify playlists yet."
           >
             {(items) =>

@@ -1,8 +1,14 @@
-import type { AsyncState } from "@/shared/hooks/use-async"
 import { cn } from "@/shared/lib/utils"
 
+/** The subset of a TanStack Query result the grid needs to render its states. */
+export interface GridState<T> {
+  data: T[] | undefined
+  isPending: boolean
+  error: Error | null
+}
+
 /**
- * Renders a responsive grid of playlist tiles for an async list, handling the
+ * Renders a responsive grid of playlist tiles for a queried list, handling the
  * loading (skeleton), error, and empty states so screens don't repeat them.
  */
 export function PlaylistGrid<T>({
@@ -15,7 +21,7 @@ export function PlaylistGrid<T>({
   onReload,
   children,
 }: {
-  state: AsyncState<T[]>
+  state: GridState<T>
   columnMin: string
   aspectClassName: string
   gapClassName?: string
@@ -29,7 +35,7 @@ export function PlaylistGrid<T>({
     gridTemplateColumns: `repeat(auto-fill, minmax(${columnMin}, 1fr))`,
   }
 
-  if (state.loading) {
+  if (state.isPending) {
     return (
       <div style={gridStyle} className={gapClassName}>
         {Array.from({ length: skeletonCount }, (_, i) => (
@@ -45,7 +51,7 @@ export function PlaylistGrid<T>({
   if (state.error) {
     return (
       <div className="text-fg-faint flex items-center gap-4 py-6 text-[13px]">
-        <span>{state.error}</span>
+        <span>{state.error.message}</span>
         {onReload ? (
           <button
             type="button"

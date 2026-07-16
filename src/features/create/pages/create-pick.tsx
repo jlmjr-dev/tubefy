@@ -5,13 +5,12 @@ import { Eyebrow } from "@/shared/components/eyebrow"
 import { PlaylistCard } from "@/shared/components/playlist-card"
 import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { ScreenHeader } from "@/shared/components/screen-header"
-import { useAsync } from "@/shared/hooks/use-async"
-import { getSpotifyPlaylists } from "@/services/spotify/client"
+import { useSpotifyPlaylists } from "@/services/queries/use-spotify-playlists"
 
 /** Create pick: choose a Spotify playlist to convert into a YouTube video mix. */
 export function CreatePick() {
   const navigate = useNavigate()
-  const playlists = useAsync(() => getSpotifyPlaylists(), [])
+  const playlists = useSpotifyPlaylists()
 
   return (
     <div className="absolute inset-0 flex flex-col">
@@ -39,7 +38,7 @@ export function CreatePick() {
             state={playlists}
             columnMin="224px"
             aspectClassName="aspect-square"
-            onReload={playlists.reload}
+            onReload={playlists.refetch}
             emptyLabel="No Spotify playlists yet."
           >
             {(items) =>

@@ -3,9 +3,8 @@ import { Play } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
 import { BackButton } from "@/shared/components/back-button"
-import { useAsync } from "@/shared/hooks/use-async"
+import { useYouTubePlaylistItems } from "@/services/queries/use-youtube-playlist-items"
 import { useYouTubePlayer } from "@/features/player/hooks/use-youtube-player"
-import { getYouTubePlaylistItems } from "@/services/youtube/client"
 import { PlayerControls } from "@/features/player/components/player-controls"
 import { QueueDrawer } from "@/features/player/components/queue-drawer"
 
@@ -17,7 +16,7 @@ export function Player() {
   const [params] = useSearchParams()
   const listId = params.get("list") ?? ""
 
-  const queueState = useAsync(() => getYouTubePlaylistItems(listId), [listId])
+  const queueState = useYouTubePlaylistItems(listId)
   const queue = useMemo(() => queueState.data ?? [], [queueState.data])
 
   const [index, setIndex] = useState(0)
@@ -241,14 +240,14 @@ export function Player() {
         <QueueDrawer queue={queue} playingIndex={index} onPick={setIndex} />
       ) : null}
 
-      {queueState.loading ? (
+      {queueState.isPending ? (
         <StageMessage>Loading playlist…</StageMessage>
       ) : queueState.error ? (
         <StageMessage>
-          <span>{queueState.error}</span>
+          <span>{queueState.error.message}</span>
           <button
             type="button"
-            onClick={queueState.reload}
+            onClick={() => queueState.refetch()}
             className="text-indigo-text mt-3 text-[11px] font-semibold tracking-[0.16em] uppercase"
           >
             Retry

@@ -5,13 +5,12 @@ import { Eyebrow } from "@/shared/components/eyebrow"
 import { PlaylistCard } from "@/shared/components/playlist-card"
 import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { ScreenHeader } from "@/shared/components/screen-header"
-import { useAsync } from "@/shared/hooks/use-async"
-import { getYouTubePlaylists } from "@/services/youtube/client"
+import { useYouTubePlaylists } from "@/services/queries/use-youtube-playlists"
 
 /** Watch browse: pick a YouTube playlist to play. */
 export function WatchBrowse() {
   const navigate = useNavigate()
-  const playlists = useAsync(() => getYouTubePlaylists(), [])
+  const playlists = useYouTubePlaylists()
 
   return (
     <div className="absolute inset-0 flex flex-col">
@@ -33,7 +32,7 @@ export function WatchBrowse() {
             state={playlists}
             columnMin="224px"
             aspectClassName="aspect-square"
-            onReload={playlists.reload}
+            onReload={playlists.refetch}
             emptyLabel="No YouTube playlists yet."
           >
             {(items) =>
