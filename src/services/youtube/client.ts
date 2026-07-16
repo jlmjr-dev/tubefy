@@ -1,5 +1,6 @@
 import { formatSeconds, formatViewCount, parseIsoDuration } from "@/shared/lib/format"
 import type { Playlist, QueueVideo, VideoCandidate } from "@/domain/types"
+import { request } from "@/services/http"
 import { getYouTubeToken } from "@/services/youtube/auth"
 
 const API = "https://www.googleapis.com/youtube/v3"
@@ -14,44 +15,14 @@ function pickThumbnail(thumbs?: Thumbnails): string | undefined {
   return thumbs?.medium?.url ?? thumbs?.high?.url ?? thumbs?.default?.url
 }
 
-async function ytGet<T>(path: string, attempt = 0): Promise<T> {
+async function ytGet<T>(path: string): Promise<T> {
   const token = await getYouTubeToken()
-  const res = await fetch(`${API}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (res.ok) return res.json() as Promise<T>
-  // Retry transient failures (rate limit / server hiccup) with backoff. Quota
-  // (403) and other 4xx are not retried.
-  if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
-    return ytGet<T>(path, attempt + 1)
-  }
-  throw new Error(await ytError(res))
+  return request<T>(`${API}${path}`, { label: "YouTube", token })
 }
 
 async function ytPost<T>(path: string, body: unknown): Promise<T> {
   const token = await getYouTubeToken()
-  const res = await fetch(`${API}${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error(await ytError(res))
-  return res.json() as Promise<T>
-}
-
-async function ytError(res: Response): Promise<string> {
-  try {
-    const data = await res.json()
-    return data?.error?.message
-      ? `YouTube: ${data.error.message}`
-      : `YouTube request failed (${res.status}).`
-  } catch {
-    return `YouTube request failed (${res.status}).`
-  }
+  return request<T>(`${API}${path}`, { label: "YouTube", method: "POST", token, body })
 }
 
 interface PlaylistResponse {

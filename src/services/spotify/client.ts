@@ -1,5 +1,6 @@
 import { formatMs } from "@/shared/lib/format"
 import type { Playlist, Track } from "@/domain/types"
+import { request } from "@/services/http"
 import { getSpotifyToken } from "@/services/spotify/auth"
 
 const API = "https://api.spotify.com/v1"
@@ -29,13 +30,7 @@ interface SpotifyTrack {
 
 async function spotifyGet<T>(path: string): Promise<T> {
   const token = await getSpotifyToken()
-  const res = await fetch(`${API}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) {
-    throw new Error(`Spotify request failed (${res.status}).`)
-  }
-  return res.json() as Promise<T>
+  return request<T>(`${API}${path}`, { label: "Spotify", token })
 }
 
 /** A single playlist's name (used when arriving at matching without route state). */
