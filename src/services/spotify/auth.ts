@@ -6,7 +6,6 @@ import {
   saveTokens,
   type StoredTokens,
 } from "@/shared/lib/storage"
-import type { PlatformProfile } from "@/domain/types"
 
 /**
  * Spotify Authorization Code + PKCE for a pure browser SPA. No client secret is
@@ -20,7 +19,6 @@ const STATE_KEY = "tubefy.spotify.state"
 
 const AUTHORIZE_URL = "https://accounts.spotify.com/authorize"
 const TOKEN_URL = "https://accounts.spotify.com/api/token"
-const API = "https://api.spotify.com/v1"
 
 const B64URL_ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
@@ -173,18 +171,4 @@ export function isSpotifyConnected(): boolean {
 
 export function disconnectSpotify(): void {
   clearTokens(TOKENS_KEY)
-}
-
-export async function fetchSpotifyProfile(): Promise<PlatformProfile> {
-  const token = await getSpotifyToken()
-  const headers = { Authorization: `Bearer ${token}` }
-  const [me, playlists] = await Promise.all([
-    fetch(`${API}/me`, { headers }).then((r) => r.json()),
-    fetch(`${API}/me/playlists?limit=1`, { headers }).then((r) => r.json()),
-  ])
-  return {
-    name: me.display_name || me.id || "Spotify",
-    avatarUrl: me.images?.[0]?.url,
-    playlistCount: playlists.total,
-  }
 }

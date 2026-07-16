@@ -1,5 +1,5 @@
 import { formatSeconds, formatViewCount, parseIsoDuration } from "@/shared/lib/format"
-import type { Playlist, QueueVideo, VideoCandidate } from "@/domain/types"
+import type { PlatformProfile, Playlist, QueueVideo, VideoCandidate } from "@/domain/types"
 import { request } from "@/services/http"
 import { getYouTubeToken } from "@/services/youtube/auth"
 
@@ -23,6 +23,26 @@ async function ytGet<T>(path: string): Promise<T> {
 async function ytPost<T>(path: string, body: unknown): Promise<T> {
   const token = await getYouTubeToken()
   return request<T>(`${API}${path}`, { label: "YouTube", method: "POST", token, body })
+}
+
+interface ChannelsResponse {
+  items?: { snippet?: { title?: string; thumbnails?: Thumbnails } }[]
+}
+
+/** The signed-in user's YouTube channel name, avatar, and playlist count. */
+export async function fetchYouTubeProfile(): Promise<PlatformProfile> {
+  const [channels, playlists] = await Promise.all([
+    ytGet<ChannelsResponse>("/channels?part=snippet&mine=true"),
+    ytGet<{ pageInfo?: { totalResults?: number } }>(
+      "/playlists?part=id&mine=true&maxResults=1"
+    ),
+  ])
+  const snippet = channels.items?.[0]?.snippet
+  return {
+    name: snippet?.title || "YouTube",
+    avatarUrl: snippet?.thumbnails?.default?.url,
+    playlistCount: playlists.pageInfo?.totalResults,
+  }
 }
 
 interface PlaylistResponse {

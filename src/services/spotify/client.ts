@@ -1,5 +1,5 @@
 import { formatMs } from "@/shared/lib/format"
-import type { Playlist, Track } from "@/domain/types"
+import type { PlatformProfile, Playlist, Track } from "@/domain/types"
 import { request } from "@/services/http"
 import { getSpotifyToken } from "@/services/spotify/auth"
 
@@ -28,9 +28,28 @@ interface SpotifyTrack {
   external_ids?: { isrc?: string }
 }
 
+interface SpotifyProfile {
+  display_name?: string
+  id?: string
+  images?: { url: string }[]
+}
+
 async function spotifyGet<T>(path: string): Promise<T> {
   const token = await getSpotifyToken()
   return request<T>(`${API}${path}`, { label: "Spotify", token })
+}
+
+/** The signed-in user's Spotify display name, avatar, and playlist count. */
+export async function fetchSpotifyProfile(): Promise<PlatformProfile> {
+  const [me, playlists] = await Promise.all([
+    spotifyGet<SpotifyProfile>("/me"),
+    spotifyGet<{ total: number }>("/me/playlists?limit=1"),
+  ])
+  return {
+    name: me.display_name || me.id || "Spotify",
+    avatarUrl: me.images?.[0]?.url,
+    playlistCount: playlists.total,
+  }
 }
 
 /** A single playlist's name (used when arriving at matching without route state). */

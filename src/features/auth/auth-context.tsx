@@ -8,16 +8,16 @@ import {
   beginSpotifyLogin,
   completeSpotifyLogin as exchangeSpotifyCode,
   disconnectSpotify,
-  fetchSpotifyProfile,
   isSpotifyConnected,
 } from "@/services/spotify/auth"
+import { fetchSpotifyProfile } from "@/services/spotify/client"
 import {
   connectYouTube as authorizeYouTube,
   disconnectYouTube,
-  fetchYouTubeProfile,
   isYouTubeConnected,
   loadGsi,
 } from "@/services/youtube/auth"
+import { fetchYouTubeProfile } from "@/services/youtube/client"
 
 export interface PlatformAuth {
   connected: boolean

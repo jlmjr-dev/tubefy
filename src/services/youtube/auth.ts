@@ -1,6 +1,5 @@
 import { config } from "@/shared/lib/config"
 import { clearTokens, isExpired, loadTokens, saveTokens } from "@/shared/lib/storage"
-import type { PlatformProfile } from "@/domain/types"
 import type { TokenClient, TokenResponse } from "@/types/google-gsi"
 
 /**
@@ -12,7 +11,6 @@ import type { TokenClient, TokenResponse } from "@/types/google-gsi"
 
 const GSI_SRC = "https://accounts.google.com/gsi/client"
 const TOKEN_KEY = "tubefy.youtube.token"
-const API = "https://www.googleapis.com/youtube/v3"
 
 let gsiPromise: Promise<void> | null = null
 
@@ -113,21 +111,4 @@ export function disconnectYouTube(): void {
     window.google.accounts.oauth2.revoke(tokens.accessToken)
   }
   clearTokens(TOKEN_KEY)
-}
-
-export async function fetchYouTubeProfile(): Promise<PlatformProfile> {
-  const token = await getYouTubeToken()
-  const headers = { Authorization: `Bearer ${token}` }
-  const [channels, playlists] = await Promise.all([
-    fetch(`${API}/channels?part=snippet&mine=true`, { headers }).then((r) => r.json()),
-    fetch(`${API}/playlists?part=id&mine=true&maxResults=1`, { headers }).then((r) =>
-      r.json()
-    ),
-  ])
-  const snippet = channels.items?.[0]?.snippet
-  return {
-    name: snippet?.title || "YouTube",
-    avatarUrl: snippet?.thumbnails?.default?.url,
-    playlistCount: playlists.pageInfo?.totalResults,
-  }
 }
