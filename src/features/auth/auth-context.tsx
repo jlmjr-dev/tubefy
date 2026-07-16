@@ -1,8 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 
-import { isGoogleConfigured, isSpotifyConfigured } from "@/shared/lib/config"
+import { config, isGoogleConfigured, isSpotifyConfigured } from "@/shared/lib/config"
 import { messageOf } from "@/shared/lib/errors"
+import { demoProfile } from "@/services/demo/fixtures"
 import type { Platform, PlatformProfile } from "@/domain/types"
 import {
   beginSpotifyLogin,
@@ -44,14 +45,16 @@ const CONFIG_HINT: Record<Platform, string> = {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [spotify, setSpotify] = React.useState<PlatformAuth>({
-    connected: isSpotifyConnected(),
-    loading: false,
-  })
-  const [youtube, setYoutube] = React.useState<PlatformAuth>({
-    connected: isYouTubeConnected(),
-    loading: false,
-  })
+  const [spotify, setSpotify] = React.useState<PlatformAuth>(
+    config.demo
+      ? { connected: true, loading: false, profile: demoProfile }
+      : { connected: isSpotifyConnected(), loading: false }
+  )
+  const [youtube, setYoutube] = React.useState<PlatformAuth>(
+    config.demo
+      ? { connected: true, loading: false, profile: demoProfile }
+      : { connected: isYouTubeConnected(), loading: false }
+  )
 
   // Warm up the Google client so the popup opens promptly on the connect click.
   React.useEffect(() => {

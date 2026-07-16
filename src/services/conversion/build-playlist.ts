@@ -1,4 +1,5 @@
 import type { Mapping } from "@/domain/types"
+import { config } from "@/shared/lib/config"
 import {
   addVideoToYouTubePlaylist,
   createYouTubePlaylist,
@@ -30,6 +31,8 @@ export async function buildYouTubePlaylist(
     .map((mapping) => mapping.candidates[mapping.chosenIndex])
     .filter((video): video is NonNullable<typeof video> => Boolean(video))
 
+  if (config.demo) return simulateDemoBuild(videos.length, options)
+
   let playlistId = options.existingPlaylistId
   if (!playlistId) {
     playlistId = await createYouTubePlaylist(
@@ -47,4 +50,18 @@ export async function buildYouTubePlaylist(
   }
 
   return { playlistId, inserted }
+}
+
+/** Demo mode: pretend to create + fill the playlist so the flow reaches success. */
+async function simulateDemoBuild(
+  count: number,
+  options: BuildOptions
+): Promise<{ playlistId: string; inserted: number }> {
+  const playlistId = "demo-playlist"
+  options.onCreated?.(playlistId)
+  for (let i = 0; i < count; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 90))
+    options.onProgress?.(i + 1)
+  }
+  return { playlistId, inserted: count }
 }

@@ -25,6 +25,9 @@ export const config = {
   // YouTube's search bucket allows ~100 search calls/day and Tubefy does one
   // search per track, so a single conversion is capped to stay well within it.
   maxTracksPerConversion: Number(import.meta.env.VITE_MAX_TRACKS ?? 50),
+  // Demo/QA mode (`pnpm demo` = `vite --mode demo`): the whole app runs on the
+  // committed fixtures in src/services/demo, with no OAuth or real API calls.
+  demo: import.meta.env.MODE === "demo",
 } as const
 
 export const isSpotifyConfigured = () => Boolean(config.spotify.clientId)

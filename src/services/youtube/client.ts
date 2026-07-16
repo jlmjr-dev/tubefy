@@ -1,6 +1,8 @@
+import { config } from "@/shared/lib/config"
 import { formatSeconds, formatViewCount, parseIsoDuration } from "@/shared/lib/format"
 import type { PlatformProfile, Playlist, QueueVideo, VideoCandidate } from "@/domain/types"
 import { request } from "@/services/http"
+import { demoVideo } from "@/services/demo/fixtures"
 import { getYouTubeToken } from "@/services/youtube/auth"
 
 const API = "https://www.googleapis.com/youtube/v3"
@@ -207,6 +209,7 @@ export async function searchCandidates(
 
 /** Look up a single video (from a pasted link) as a candidate. Null if missing. */
 export async function getVideoById(videoId: string): Promise<VideoCandidate | null> {
+  if (config.demo) return demoVideo(videoId)
   const res: VideosResponse = await ytGet(
     `/videos?part=contentDetails,snippet,statistics&id=${videoId}`
   )

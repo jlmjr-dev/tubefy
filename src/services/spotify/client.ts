@@ -1,6 +1,8 @@
+import { config } from "@/shared/lib/config"
 import { formatMs } from "@/shared/lib/format"
 import type { PlatformProfile, Playlist, Track } from "@/domain/types"
 import { request } from "@/services/http"
+import { demoTracks } from "@/services/demo/fixtures"
 import { getSpotifyToken } from "@/services/spotify/auth"
 
 const API = "https://api.spotify.com/v1"
@@ -54,6 +56,7 @@ export async function fetchSpotifyProfile(): Promise<PlatformProfile> {
 
 /** A single playlist's name (used when arriving at matching without route state). */
 export async function getSpotifyPlaylistName(playlistId: string): Promise<string> {
+  if (config.demo) return "Classic Prog Metal"
   const data = await spotifyGet<{ name: string }>(
     `/playlists/${playlistId}?fields=name`
   )
@@ -87,6 +90,7 @@ export async function getSpotifyTracks(
   playlistId: string,
   limit = 100
 ): Promise<Track[]> {
+  if (config.demo) return demoTracks.slice(0, limit)
   const tracks: Track[] = []
   const fields =
     "next,items(track(id,name,duration_ms,album(name),artists(name),external_ids(isrc)))"

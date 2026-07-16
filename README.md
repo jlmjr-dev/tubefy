@@ -85,12 +85,27 @@ Then open [http://127.0.0.1:5173](http://127.0.0.1:5173). The dev server uses th
 loopback IP on purpose: Spotify no longer allows `localhost` as an OAuth redirect
 host.
 
+### Demo mode
+
+No OAuth setup? Run the whole app on committed fixtures instead:
+
+```bash
+pnpm demo
+```
+
+Demo mode starts already "connected" and serves a metal-flavoured slice of the app
+(playlists, a player queue, the convert flow with a deliberate no-match) from
+`src/services/demo`, with no OAuth or API calls. It doubles as a click-through QA
+tool and the source for the screenshots in this README.
+
 ### Other scripts
 
 ```bash
 pnpm build      # typecheck + production build
+pnpm build:demo # production build of the fixture-backed demo
 pnpm typecheck  # type-check only
 pnpm lint       # run ESLint
+pnpm test       # run the Vitest unit tests
 ```
 
 ## Project structure
