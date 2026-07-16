@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { BackButton } from "@/shared/components/back-button"
 import { useAsync } from "@/hooks/use-async"
 import { useYouTubePlayer } from "@/hooks/use-youtube-player"
-import { getYouTubePlaylistItems } from "@/lib/youtube/api"
+import { getYouTubePlaylistItems } from "@/services/youtube/client"
 import { PlayerControls } from "@/pages/player/player-controls"
 import { QueueDrawer } from "@/pages/player/queue-drawer"
 

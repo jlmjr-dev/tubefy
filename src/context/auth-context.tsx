@@ -2,23 +2,21 @@
 import * as React from "react"
 
 import { isGoogleConfigured, isSpotifyConfigured } from "@/shared/lib/config"
-import type { PlatformProfile } from "@/lib/auth/types"
+import type { Platform, PlatformProfile } from "@/domain/types"
 import {
   beginSpotifyLogin,
   completeSpotifyLogin as exchangeSpotifyCode,
   disconnectSpotify,
   fetchSpotifyProfile,
   isSpotifyConnected,
-} from "@/lib/spotify/auth"
+} from "@/services/spotify/auth"
 import {
   connectYouTube as authorizeYouTube,
   disconnectYouTube,
   fetchYouTubeProfile,
   isYouTubeConnected,
   loadGsi,
-} from "@/lib/youtube/auth"
-
-export type PlatformKey = "spotify" | "youtube"
+} from "@/services/youtube/auth"
 
 export interface PlatformAuth {
   connected: boolean
@@ -34,12 +32,12 @@ interface AuthContextValue {
   connectSpotify: () => Promise<void>
   connectYouTube: () => Promise<void>
   completeSpotifyLogin: () => Promise<void>
-  disconnect: (platform: PlatformKey) => void
+  disconnect: (platform: Platform) => void
 }
 
 const AuthContext = React.createContext<AuthContextValue | undefined>(undefined)
 
-const CONFIG_HINT: Record<PlatformKey, string> = {
+const CONFIG_HINT: Record<Platform, string> = {
   spotify: "Add your Spotify client id to .env.local (see SETUP.md).",
   youtube: "Add your Google client id to .env.local (see SETUP.md).",
 }
@@ -115,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const disconnect = React.useCallback((platform: PlatformKey) => {
+  const disconnect = React.useCallback((platform: Platform) => {
     if (platform === "spotify") {
       disconnectSpotify()
       setSpotify({ connected: false, loading: false })

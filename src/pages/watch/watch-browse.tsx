@@ -6,7 +6,7 @@ import { PlaylistCard } from "@/shared/components/playlist-card"
 import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { ScreenHeader } from "@/shared/components/screen-header"
 import { useAsync } from "@/hooks/use-async"
-import { getYouTubePlaylists } from "@/lib/youtube/api"
+import { getYouTubePlaylists } from "@/services/youtube/client"
 
 /** Watch browse: pick a YouTube playlist to play. */
 export function WatchBrowse() {

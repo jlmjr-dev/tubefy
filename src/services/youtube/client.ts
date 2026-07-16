@@ -1,6 +1,6 @@
 import { formatSeconds, formatViewCount, parseIsoDuration } from "@/shared/lib/format"
-import type { Playlist, QueueVideo, VideoCandidate } from "@/lib/types"
-import { getYouTubeToken } from "@/lib/youtube/auth"
+import type { Playlist, QueueVideo, VideoCandidate } from "@/domain/types"
+import { getYouTubeToken } from "@/services/youtube/auth"
 
 const API = "https://www.googleapis.com/youtube/v3"
 

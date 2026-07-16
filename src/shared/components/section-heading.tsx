@@ -1,5 +1,5 @@
 import { PlatformTag } from "@/shared/components/platform-tag"
-import type { Platform } from "@/lib/types"
+import type { Platform } from "@/domain/types"
 
 /** A section title (Lora) with an optional platform tag on the right. */
 export function SectionHeading({

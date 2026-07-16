@@ -1,7 +1,7 @@
 import { ListMusic } from "lucide-react"
 
 import { CoverArt } from "@/shared/components/cover-art"
-import type { QueueVideo } from "@/lib/types"
+import type { QueueVideo } from "@/domain/types"
 
 function EqualizerBars() {
   return (

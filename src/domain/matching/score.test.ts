@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import type { Track, VideoCandidate } from "@/lib/types"
-import { confidenceFor, scoreCandidate, titleSimilarity } from "@/lib/matching/score"
+import type { Track, VideoCandidate } from "@/domain/types"
+import { confidenceFor, scoreCandidate, titleSimilarity } from "@/domain/matching/score"
 
 function track(overrides: Partial<Track> = {}): Track {
   return {

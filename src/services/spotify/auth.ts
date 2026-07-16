@@ -6,7 +6,7 @@ import {
   saveTokens,
   type StoredTokens,
 } from "@/shared/lib/storage"
-import type { PlatformProfile } from "@/lib/auth/types"
+import type { PlatformProfile } from "@/domain/types"
 
 /**
  * Spotify Authorization Code + PKCE for a pure browser SPA. No client secret is

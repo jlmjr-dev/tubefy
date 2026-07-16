@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { Wordmark } from "@/shared/components/wordmark"
 import { Eyebrow } from "@/shared/components/eyebrow"
 import { useAuth } from "@/context/auth-context"
-import { hasSpotifyRedirect } from "@/lib/spotify/auth"
+import { hasSpotifyRedirect } from "@/services/spotify/auth"
 
 /**
  * Landing spot for the Spotify OAuth redirect. Exchanges the authorization code

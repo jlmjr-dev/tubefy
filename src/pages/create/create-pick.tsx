@@ -6,7 +6,7 @@ import { PlaylistCard } from "@/shared/components/playlist-card"
 import { PlaylistGrid } from "@/shared/components/playlist-grid"
 import { ScreenHeader } from "@/shared/components/screen-header"
 import { useAsync } from "@/hooks/use-async"
-import { getSpotifyPlaylists } from "@/lib/spotify/api"
+import { getSpotifyPlaylists } from "@/services/spotify/client"
 
 /** Create pick: choose a Spotify playlist to convert into a YouTube video mix. */
 export function CreatePick() {

@@ -1,5 +1,5 @@
 import { cn } from "@/shared/lib/utils"
-import type { Platform } from "@/lib/types"
+import type { Platform } from "@/domain/types"
 
 export type { Platform }
 

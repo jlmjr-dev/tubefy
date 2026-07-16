@@ -9,8 +9,8 @@ import { SectionHeading } from "@/shared/components/section-heading"
 import { TopBar } from "@/shared/components/top-bar"
 import { useAuth } from "@/context/auth-context"
 import { useAsync } from "@/hooks/use-async"
-import { getSpotifyPlaylists } from "@/lib/spotify/api"
-import { getYouTubePlaylists } from "@/lib/youtube/api"
+import { getSpotifyPlaylists } from "@/services/spotify/client"
+import { getYouTubePlaylists } from "@/services/youtube/client"
 import { ActionCard } from "@/pages/home/action-card"
 
 function greetingForNow(): string {

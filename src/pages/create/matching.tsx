@@ -6,9 +6,9 @@ import { BackButton } from "@/shared/components/back-button"
 import { Eyebrow } from "@/shared/components/eyebrow"
 import { useCreate } from "@/context/create-context"
 import { config } from "@/shared/lib/config"
-import { matchTrack } from "@/lib/matching/match"
-import { getSpotifyPlaylistName, getSpotifyTracks } from "@/lib/spotify/api"
-import type { Confidence, Mapping } from "@/lib/types"
+import { matchTrack } from "@/services/conversion/match-track"
+import { getSpotifyPlaylistName, getSpotifyTracks } from "@/services/spotify/client"
+import type { Confidence, Mapping } from "@/domain/types"
 
 interface LogEntry {
   title: string

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { loadYouTubeIframeApi } from "@/lib/youtube/iframe"
+import { loadYouTubeIframeApi } from "@/services/youtube/iframe"
 import type { YTPlayer } from "@/types/youtube-iframe"
 
 interface UseYouTubePlayer {

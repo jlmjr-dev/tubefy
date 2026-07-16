@@ -12,7 +12,7 @@ import {
 
 import { CoverArt } from "@/shared/components/cover-art"
 import { formatSeconds } from "@/shared/lib/format"
-import type { QueueVideo } from "@/lib/types"
+import type { QueueVideo } from "@/domain/types"
 
 function GhostButton({
   onClick,

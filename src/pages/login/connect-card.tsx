@@ -1,7 +1,8 @@
 import { AudioLines, Check, MonitorPlay, type LucideIcon } from "lucide-react"
 
 import { CoverArt } from "@/shared/components/cover-art"
-import type { PlatformAuth, PlatformKey } from "@/context/auth-context"
+import type { PlatformAuth } from "@/context/auth-context"
+import type { Platform } from "@/domain/types"
 import { cn } from "@/shared/lib/utils"
 
 interface PlatformMeta {
@@ -13,7 +14,7 @@ interface PlatformMeta {
   checkStroke: string
 }
 
-const PLATFORM: Record<PlatformKey, PlatformMeta> = {
+const PLATFORM: Record<Platform, PlatformMeta> = {
   spotify: {
     brand: "var(--spotify)",
     eyebrow: "Music library",
@@ -49,7 +50,7 @@ export function ConnectCard({
   onConnect,
   delay,
 }: {
-  platform: PlatformKey
+  platform: Platform
   auth: PlatformAuth
   onConnect: () => void
   delay: string

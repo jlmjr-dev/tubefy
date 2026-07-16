@@ -5,7 +5,7 @@ import { Navigate, useNavigate } from "react-router-dom"
 import { Eyebrow } from "@/shared/components/eyebrow"
 import { ScreenHeader } from "@/shared/components/screen-header"
 import { useCreate } from "@/context/create-context"
-import { buildYouTubePlaylist } from "@/lib/youtube/create-playlist"
+import { buildYouTubePlaylist } from "@/services/conversion/build-playlist"
 import { ReviewRow } from "@/pages/create/review-row"
 
 function Stat({ value, label, color }: { value: number; label: string; color: string }) {

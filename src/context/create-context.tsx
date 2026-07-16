@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 
-import type { Mapping } from "@/lib/types"
+import type { Mapping } from "@/domain/types"
 
 export interface CreatedPlaylist {
   id: string

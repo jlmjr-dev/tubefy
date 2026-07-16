@@ -1,4 +1,4 @@
-import type { Confidence, Track, VideoCandidate } from "@/lib/types"
+import type { Confidence, Track, VideoCandidate } from "@/domain/types"
 
 /**
  * Heuristics for picking the right music video for a Spotify track. We score each

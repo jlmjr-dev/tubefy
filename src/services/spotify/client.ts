@@ -1,6 +1,6 @@
 import { formatMs } from "@/shared/lib/format"
-import type { Playlist, Track } from "@/lib/types"
-import { getSpotifyToken } from "@/lib/spotify/auth"
+import type { Playlist, Track } from "@/domain/types"
+import { getSpotifyToken } from "@/services/spotify/auth"
 
 const API = "https://api.spotify.com/v1"
 

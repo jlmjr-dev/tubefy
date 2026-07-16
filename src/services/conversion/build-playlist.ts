@@ -1,8 +1,8 @@
-import type { Mapping } from "@/lib/types"
+import type { Mapping } from "@/domain/types"
 import {
   addVideoToYouTubePlaylist,
   createYouTubePlaylist,
-} from "@/lib/youtube/api"
+} from "@/services/youtube/client"
 
 interface BuildOptions {
   /** Reuse an already-created playlist (set on retry to avoid duplicates). */

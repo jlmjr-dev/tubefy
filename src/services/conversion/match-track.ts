@@ -1,6 +1,6 @@
-import type { Mapping, Track } from "@/lib/types"
-import { searchCandidates } from "@/lib/youtube/api"
-import { confidenceFor, scoreCandidate } from "@/lib/matching/score"
+import type { Mapping, Track } from "@/domain/types"
+import { searchCandidates } from "@/services/youtube/client"
+import { confidenceFor, scoreCandidate } from "@/domain/matching/score"
 
 /**
  * Resolve one Spotify track to its best YouTube music video plus alternates.

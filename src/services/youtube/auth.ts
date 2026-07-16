@@ -1,5 +1,5 @@
 import { config } from "@/shared/lib/config"
-import type { PlatformProfile } from "@/lib/auth/types"
+import type { PlatformProfile } from "@/domain/types"
 import type { TokenClient, TokenResponse } from "@/types/google-gsi"
 
 /**
