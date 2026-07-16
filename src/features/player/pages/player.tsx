@@ -1,109 +1,28 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef } from "react"
 import { Play } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
 import { BackButton } from "@/shared/components/back-button"
 import { useYouTubePlaylistItems } from "@/services/queries/use-youtube-playlist-items"
+import { useAutoHideChrome } from "@/features/player/hooks/use-auto-hide-chrome"
+import { usePlaybackQueue } from "@/features/player/hooks/use-playback-queue"
+import { useVolume } from "@/features/player/hooks/use-volume"
 import { useYouTubePlayer } from "@/features/player/hooks/use-youtube-player"
 import { PlayerControls } from "@/features/player/components/player-controls"
 import { QueueDrawer } from "@/features/player/components/queue-drawer"
-
-const CHROME_HIDE_MS = 2600
 
 /** Focus-mode player: YouTube video with custom chrome, queue, and auto-advance. */
 export function Player() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const listId = params.get("list") ?? ""
+  const stageRef = useRef<HTMLDivElement>(null)
 
   const queueState = useYouTubePlaylistItems(listId)
   const queue = useMemo(() => queueState.data ?? [], [queueState.data])
 
-  const [index, setIndex] = useState(0)
-  const [trackedList, setTrackedList] = useState(listId)
-  const [chromeVisible, setChromeVisible] = useState(true)
-  const [volume, setVolumeState] = useState(100)
-  const [repeat, setRepeat] = useState(false)
-  const [shuffle, setShuffle] = useState(false)
-  const [order, setOrder] = useState<number[]>([])
-  const [allUnplayable, setAllUnplayable] = useState(false)
-  const stageRef = useRef<HTMLDivElement>(null)
-  const hideTimer = useRef<number | null>(null)
-  const skipCount = useRef(0)
-  const lastVolume = useRef(100)
-
-  // Move by `dir`, following the shuffle order when it's on (wrapping).
-  const step = useCallback(
-    (dir: 1 | -1) => {
-      setIndex((i) => {
-        if (shuffle && order.length) {
-          const pos = order.indexOf(i)
-          return order[(pos + dir + order.length) % order.length]
-        }
-        return queue.length ? (i + dir + queue.length) % queue.length : 0
-      })
-    },
-    [shuffle, order, queue.length]
-  )
-  const goNext = useCallback(() => step(1), [step])
-  const goPrev = useCallback(() => step(-1), [step])
-
-  // Auto-advance stops at the end (of the shuffle order or the queue) unless Repeat.
-  const handleEnded = useCallback(() => {
-    setIndex((i) => {
-      if (shuffle && order.length) {
-        const pos = order.indexOf(i)
-        if (pos < order.length - 1) return order[pos + 1]
-        return repeat ? order[0] : i
-      }
-      if (i < queue.length - 1) return i + 1
-      return repeat ? 0 : i
-    })
-  }, [shuffle, order, queue.length, repeat])
-
-  const toggleShuffle = useCallback(() => {
-    if (shuffle) {
-      setShuffle(false)
-      setOrder([])
-      return
-    }
-    // Keep the current song first, shuffle the rest (Fisher-Yates).
-    const rest = queue.map((_, i) => i).filter((i) => i !== index)
-    for (let i = rest.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[rest[i], rest[j]] = [rest[j], rest[i]]
-    }
-    setShuffle(true)
-    setOrder([index, ...rest])
-  }, [shuffle, queue, index])
-
-  // Many official music videos block embedding; skip past unplayable ones, and
-  // only give up once the entire queue has failed without anything playing.
-  const handleError = useCallback(() => {
-    skipCount.current += 1
-    if (queue.length > 0 && skipCount.current >= queue.length) {
-      setAllUnplayable(true)
-      return
-    }
-    setIndex((i) => (queue.length ? (i + 1) % queue.length : 0))
-  }, [queue.length])
-
-  // A successful play means the queue isn't all-broken; reset the skip counter.
-  const handlePlay = useCallback(() => {
-    skipCount.current = 0
-    setAllUnplayable(false)
-  }, [])
-
-  // Reset position + shuffle when the playlist changes (render-phase reset).
-  if (listId !== trackedList) {
-    setTrackedList(listId)
-    setIndex(0)
-    setShuffle(false)
-    setOrder([])
-  }
-
-  const current = queue[index]
-  const currentVideoId = current?.videoId
+  const playback = usePlaybackQueue(queue, listId)
+  const { index, current, allUnplayable, shuffle, repeat } = playback
 
   const {
     containerRef,
@@ -115,40 +34,14 @@ export function Player() {
     seekTo,
     setVolume,
   } = useYouTubePlayer({
-    videoId: currentVideoId,
-    onEnded: handleEnded,
-    onError: handleError,
-    onPlay: handlePlay,
+    videoId: current?.videoId,
+    onEnded: playback.onEnded,
+    onError: playback.onError,
+    onPlay: playback.onPlay,
   })
 
-  const showChrome = useCallback(() => {
-    setChromeVisible(true)
-    if (hideTimer.current) window.clearTimeout(hideTimer.current)
-    hideTimer.current = window.setTimeout(() => setChromeVisible(false), CHROME_HIDE_MS)
-  }, [])
-  const hideChrome = useCallback(() => {
-    if (hideTimer.current) window.clearTimeout(hideTimer.current)
-    setChromeVisible(false)
-  }, [])
-  useEffect(() => {
-    return () => {
-      if (hideTimer.current) window.clearTimeout(hideTimer.current)
-    }
-  }, [])
-
-  const changeVolume = useCallback(
-    (value: number) => {
-      setVolumeState(value)
-      setVolume(value)
-      if (value > 0) lastVolume.current = value
-    },
-    [setVolume]
-  )
-  const toggleMute = useCallback(() => {
-    const next = volume > 0 ? 0 : lastVolume.current || 100
-    setVolumeState(next)
-    setVolume(next)
-  }, [volume, setVolume])
+  const { volume, changeVolume, toggleMute } = useVolume(setVolume)
+  const { chromeVisible, showChrome, hideChrome } = useAutoHideChrome()
 
   const maximize = useCallback(() => {
     stageRef.current?.requestFullscreen?.().catch(() => {})
@@ -225,19 +118,19 @@ export function Player() {
           repeat={repeat}
           shuffle={shuffle}
           onToggle={toggle}
-          onPrev={goPrev}
-          onNext={goNext}
+          onPrev={playback.goPrev}
+          onNext={playback.goNext}
           onSeek={seekTo}
           onVolumeChange={changeVolume}
           onToggleMute={toggleMute}
-          onToggleRepeat={() => setRepeat((r) => !r)}
-          onToggleShuffle={toggleShuffle}
+          onToggleRepeat={playback.toggleRepeat}
+          onToggleShuffle={playback.toggleShuffle}
           onMaximize={maximize}
         />
       </div>
 
       {queue.length > 0 ? (
-        <QueueDrawer queue={queue} playingIndex={index} onPick={setIndex} />
+        <QueueDrawer queue={queue} playingIndex={index} onPick={playback.select} />
       ) : null}
 
       {queueState.isPending ? (
