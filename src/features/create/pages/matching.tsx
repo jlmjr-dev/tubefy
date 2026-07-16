@@ -1,9 +1,10 @@
 import { useEffect } from "react"
-import { ArrowRight, AudioLines, MonitorPlay } from "lucide-react"
+import { AudioLines, MonitorPlay } from "lucide-react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 
 import { BackButton } from "@/shared/components/back-button"
 import { Eyebrow } from "@/shared/components/eyebrow"
+import { MatchLogRow } from "@/features/create/components/match-log-row"
 import { useMatchingJob } from "@/features/create/hooks/use-matching-job"
 
 /** Bridge node (Spotify / YouTube) flanking the sweeping connector line. */
@@ -93,25 +94,7 @@ export function Matching() {
 
         <div className="mt-[22px] flex min-h-[150px] flex-col gap-[9px]">
           {log.map((entry, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-[11px] text-[13px] [animation:fadeUp_0.3s_both]"
-            >
-              <span
-                className="w-[56px] flex-none text-[9px] font-semibold tracking-[0.14em] uppercase"
-                style={{
-                  color:
-                    entry.confidence === "review" ? "var(--amber)" : "var(--spotify)",
-                }}
-              >
-                {entry.confidence === "review" ? "Review" : "Matched"}
-              </span>
-              <span className="whitespace-nowrap text-[oklch(0.86_0.01_107)]">
-                {entry.title}
-              </span>
-              <ArrowRight className="text-fg-fainter size-[13px] flex-none" />
-              <span className="text-fg-faint min-w-0 flex-1 truncate">{entry.yt}</span>
-            </div>
+            <MatchLogRow key={i} entry={entry} />
           ))}
         </div>
       </div>
