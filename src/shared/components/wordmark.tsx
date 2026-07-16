@@ -1,25 +1,8 @@
 import { cn } from "@/shared/lib/utils"
 
-/** The indigo rotated-square glyph that stands in for the Tubefy logo. */
-export function Diamond({
-  className,
-  style,
-}: {
-  className?: string
-  style?: React.CSSProperties
-}) {
-  return (
-    <span
-      aria-hidden
-      className={cn("inline-block rotate-45 bg-indigo", className)}
-      style={style}
-    />
-  )
-}
-
 /**
  * The Tubefy wordmark. `hero` is the giant centered login treatment; `bar` is
- * the compact lockup (diamond + name) used in screen top bars.
+ * the compact lockup used in screen top bars. Text only, no glyph.
  */
 export function Wordmark({
   variant = "bar",
@@ -42,11 +25,13 @@ export function Wordmark({
   }
 
   return (
-    <div className={cn("flex items-center gap-[11px]", className)}>
-      <Diamond className="size-4" />
-      <span className="font-heading text-[15px] tracking-[0.2em] uppercase">
-        Tubefy
-      </span>
-    </div>
+    <span
+      className={cn(
+        "font-heading text-[15px] tracking-[0.2em] uppercase",
+        className
+      )}
+    >
+      Tubefy
+    </span>
   )
 }
