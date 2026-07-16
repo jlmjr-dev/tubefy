@@ -205,6 +205,28 @@ export async function searchCandidates(
   })
 }
 
+/** Look up a single video (from a pasted link) as a candidate. Null if missing. */
+export async function getVideoById(videoId: string): Promise<VideoCandidate | null> {
+  const res: VideosResponse = await ytGet(
+    `/videos?part=contentDetails,snippet,statistics&id=${videoId}`
+  )
+  const item = res.items?.[0]
+  if (!item) return null
+  const durationSec = item.contentDetails?.duration
+    ? parseIsoDuration(item.contentDetails.duration)
+    : 0
+  const views = item.statistics?.viewCount ? Number(item.statistics.viewCount) : undefined
+  return {
+    videoId,
+    title: item.snippet?.title ?? "",
+    channelTitle: item.snippet?.channelTitle ?? "",
+    durationSec,
+    durationLabel: durationSec ? formatSeconds(durationSec) : "",
+    viewCountLabel: views != null ? formatViewCount(views) : undefined,
+    thumbnailUrl: pickThumbnail(item.snippet?.thumbnails),
+  }
+}
+
 interface InsertPlaylistResponse {
   id: string
 }

@@ -5,7 +5,8 @@ import { Eyebrow } from "@/shared/components/eyebrow"
 import { CandidateCard } from "@/features/create/components/candidate-card"
 import { ConfidenceBadge } from "@/features/create/components/confidence-badge"
 import { MatchTarget } from "@/features/create/components/match-target"
-import type { Mapping } from "@/domain/types"
+import { PasteVideo } from "@/features/create/components/paste-video"
+import type { Mapping, VideoCandidate } from "@/domain/types"
 import { cn } from "@/shared/lib/utils"
 
 /**
@@ -19,12 +20,14 @@ export function ReviewRow({
   isOpen,
   onToggle,
   onChoose,
+  onAddVideo,
 }: {
   mapping: Mapping
   index: number
   isOpen: boolean
   onToggle: () => void
   onChoose: (candidateIndex: number) => void
+  onAddVideo: (candidate: VideoCandidate) => void
 }) {
   const { track } = mapping
   const chosen = mapping.candidates[mapping.chosenIndex]
@@ -69,32 +72,37 @@ export function ReviewRow({
           <MatchTarget chosen={chosen} />
         </div>
 
-        {mapping.candidates.length > 1 ? (
-          <button
-            type="button"
-            onClick={onToggle}
-            className="text-fg-muted hover:border-indigo inline-flex flex-none items-center gap-[7px] border border-[oklch(1_0_0/0.14)] px-3 py-[9px] text-[9px] font-semibold tracking-[0.16em] uppercase transition-colors hover:text-[oklch(0.95_0_0)]"
-          >
-            Change
-            <ChevronDown className="size-[13px]" />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          onClick={onToggle}
+          className="text-fg-muted hover:border-indigo inline-flex flex-none items-center gap-[7px] border border-[oklch(1_0_0/0.14)] px-3 py-[9px] text-[9px] font-semibold tracking-[0.16em] uppercase transition-colors hover:text-[oklch(0.95_0_0)]"
+        >
+          {chosen ? "Change" : "Add video"}
+          <ChevronDown
+            className={cn("size-[13px] transition-transform", isOpen && "rotate-180")}
+          />
+        </button>
       </div>
 
       {isOpen ? (
         <div className="bg-panel-inset border-t border-[var(--border-subtle)] p-4">
-          <Eyebrow className="mb-3 tracking-[0.24em]">Pick the right video</Eyebrow>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {mapping.candidates.map((candidate, ci) => (
-              <CandidateCard
-                key={candidate.videoId}
-                candidate={candidate}
-                active={ci === mapping.chosenIndex}
-                label={ci === 0 ? "Auto-matched" : "Alternate"}
-                onClick={() => onChoose(ci)}
-              />
-            ))}
-          </div>
+          <Eyebrow className="mb-3 tracking-[0.24em]">
+            {mapping.candidates.length > 0 ? "Pick the right video" : "Paste the right video"}
+          </Eyebrow>
+          {mapping.candidates.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {mapping.candidates.map((candidate, ci) => (
+                <CandidateCard
+                  key={candidate.videoId}
+                  candidate={candidate}
+                  active={ci === mapping.chosenIndex}
+                  label={ci === 0 ? "Auto-matched" : "Alternate"}
+                  onClick={() => onChoose(ci)}
+                />
+              ))}
+            </div>
+          ) : null}
+          <PasteVideo onAdd={onAddVideo} />
         </div>
       ) : null}
     </div>

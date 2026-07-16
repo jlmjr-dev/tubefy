@@ -25,7 +25,8 @@ function Stat({ value, label, color }: { value: number; label: string; color: st
 /** Review & remap: check each auto-match, fix the shaky ones, then create. */
 export function Review() {
   const navigate = useNavigate()
-  const { mappings, playlistName, chooseCandidate, setCreated, matchError } = useCreate()
+  const { mappings, playlistName, chooseCandidate, addCandidate, setCreated, matchError } =
+    useCreate()
   const [expanded, setExpanded] = useState<number | null>(null)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -133,6 +134,7 @@ export function Review() {
               isOpen={expanded === i}
               onToggle={() => setExpanded((e) => (e === i ? null : i))}
               onChoose={(ci) => chooseCandidate(i, ci)}
+              onAddVideo={(candidate) => addCandidate(i, candidate)}
             />
           ))}
         </div>

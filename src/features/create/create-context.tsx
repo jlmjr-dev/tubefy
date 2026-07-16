@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 
-import type { Mapping } from "@/domain/types"
+import type { Mapping, VideoCandidate } from "@/domain/types"
 
 export interface CreatedPlaylist {
   id: string
@@ -20,6 +20,8 @@ interface CreateContextValue {
   setSource: (id: string, name: string) => void
   setMappings: (mappings: Mapping[], matchError?: string | null) => void
   chooseCandidate: (rowIndex: number, candidateIndex: number) => void
+  /** Append a manually pasted video to a row and select it. */
+  addCandidate: (rowIndex: number, candidate: VideoCandidate) => void
   setCreated: (created: CreatedPlaylist) => void
   reset: () => void
 }
@@ -58,6 +60,25 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
     []
   )
 
+  const addCandidate = React.useCallback(
+    (rowIndex: number, candidate: VideoCandidate) => {
+      setMappingsState((prev) =>
+        prev.map((mapping, i) =>
+          i === rowIndex
+            ? {
+                ...mapping,
+                candidates: [...mapping.candidates, candidate],
+                chosenIndex: mapping.candidates.length,
+                // A deliberate paste is treated as a confident choice.
+                confidence: "strong",
+              }
+            : mapping
+        )
+      )
+    },
+    []
+  )
+
   const setCreated = React.useCallback((next: CreatedPlaylist) => {
     setCreatedState(next)
   }, [])
@@ -80,6 +101,7 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
       setSource,
       setMappings,
       chooseCandidate,
+      addCandidate,
       setCreated,
       reset,
     }),
@@ -92,6 +114,7 @@ export function CreateProvider({ children }: { children: React.ReactNode }) {
       setSource,
       setMappings,
       chooseCandidate,
+      addCandidate,
       setCreated,
       reset,
     ]
