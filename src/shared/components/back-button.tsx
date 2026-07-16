@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /** The muted "<- Label" back link used in screen headers and the player chrome. */
 export function BackButton({

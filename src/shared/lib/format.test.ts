@@ -5,7 +5,7 @@ import {
   formatSeconds,
   formatViewCount,
   parseIsoDuration,
-} from "@/lib/format"
+} from "@/shared/lib/format"
 
 describe("formatMs", () => {
   it("formats whole minutes and seconds", () => {

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /**
  * The small uppercase, wide-tracked label used above headings and on tags. Tune

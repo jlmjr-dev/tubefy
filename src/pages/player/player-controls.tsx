@@ -10,8 +10,8 @@ import {
   VolumeX,
 } from "lucide-react"
 
-import { CoverArt } from "@/components/cover-art"
-import { formatSeconds } from "@/lib/format"
+import { CoverArt } from "@/shared/components/cover-art"
+import { formatSeconds } from "@/shared/lib/format"
 import type { QueueVideo } from "@/lib/types"
 
 function GhostButton({

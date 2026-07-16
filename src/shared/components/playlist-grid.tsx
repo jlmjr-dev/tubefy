@@ -1,5 +1,5 @@
 import type { AsyncState } from "@/hooks/use-async"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /**
  * Renders a responsive grid of playlist tiles for an async list, handling the

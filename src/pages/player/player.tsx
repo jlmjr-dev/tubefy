@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Play } from "lucide-react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
-import { BackButton } from "@/components/back-button"
+import { BackButton } from "@/shared/components/back-button"
 import { useAsync } from "@/hooks/use-async"
 import { useYouTubePlayer } from "@/hooks/use-youtube-player"
 import { getYouTubePlaylistItems } from "@/lib/youtube/api"

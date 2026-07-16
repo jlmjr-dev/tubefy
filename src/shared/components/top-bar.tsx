@@ -1,6 +1,6 @@
-import { CoverArt } from "@/components/cover-art"
-import { PlatformTag } from "@/components/platform-tag"
-import { Wordmark } from "@/components/wordmark"
+import { CoverArt } from "@/shared/components/cover-art"
+import { PlatformTag } from "@/shared/components/platform-tag"
+import { Wordmark } from "@/shared/components/wordmark"
 import { useAuth } from "@/context/auth-context"
 
 /** Home's top bar: wordmark left; connected platform chips + user avatar right. */

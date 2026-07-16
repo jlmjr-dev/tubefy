@@ -1,5 +1,5 @@
-import { CoverArt } from "@/components/cover-art"
-import { cn } from "@/lib/utils"
+import { CoverArt } from "@/shared/components/cover-art"
+import { cn } from "@/shared/lib/utils"
 
 /**
  * A clickable playlist tile: cover, title, and a meta line, with an optional

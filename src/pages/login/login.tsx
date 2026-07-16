@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
-import { Wordmark } from "@/components/wordmark"
+import { Wordmark } from "@/shared/components/wordmark"
 import { useAuth } from "@/context/auth-context"
 import { ConnectCard } from "@/pages/login/connect-card"
 

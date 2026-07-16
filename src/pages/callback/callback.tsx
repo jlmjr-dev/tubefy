@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-import { Wordmark } from "@/components/wordmark"
-import { Eyebrow } from "@/components/eyebrow"
+import { Wordmark } from "@/shared/components/wordmark"
+import { Eyebrow } from "@/shared/components/eyebrow"
 import { useAuth } from "@/context/auth-context"
 import { hasSpotifyRedirect } from "@/lib/spotify/auth"
 

@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom"
 
-import { BuildPill } from "@/components/cover-overlays"
-import { Eyebrow } from "@/components/eyebrow"
-import { PlaylistCard } from "@/components/playlist-card"
-import { PlaylistGrid } from "@/components/playlist-grid"
-import { ScreenHeader } from "@/components/screen-header"
+import { BuildPill } from "@/shared/components/cover-overlays"
+import { Eyebrow } from "@/shared/components/eyebrow"
+import { PlaylistCard } from "@/shared/components/playlist-card"
+import { PlaylistGrid } from "@/shared/components/playlist-grid"
+import { ScreenHeader } from "@/shared/components/screen-header"
 import { useAsync } from "@/hooks/use-async"
 import { getSpotifyPlaylists } from "@/lib/spotify/api"
 

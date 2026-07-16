@@ -1,4 +1,4 @@
-import { PlatformTag } from "@/components/platform-tag"
+import { PlatformTag } from "@/shared/components/platform-tag"
 import type { Platform } from "@/lib/types"
 
 /** A section title (Lora) with an optional platform tag on the right. */

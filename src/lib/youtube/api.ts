@@ -1,4 +1,4 @@
-import { formatSeconds, formatViewCount, parseIsoDuration } from "@/lib/format"
+import { formatSeconds, formatViewCount, parseIsoDuration } from "@/shared/lib/format"
 import type { Playlist, QueueVideo, VideoCandidate } from "@/lib/types"
 import { getYouTubeToken } from "@/lib/youtube/auth"
 

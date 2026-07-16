@@ -1,7 +1,7 @@
 import { Check, Play } from "lucide-react"
 import { Navigate, useNavigate } from "react-router-dom"
 
-import { Eyebrow } from "@/components/eyebrow"
+import { Eyebrow } from "@/shared/components/eyebrow"
 import { useCreate } from "@/context/create-context"
 
 const CONFETTI_COLORS = [

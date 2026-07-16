@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom"
 
-import { AppBackground } from "@/components/app-background"
+import { AppBackground } from "@/shared/components/app-background"
 import { RequireAuth } from "@/components/require-auth"
 import { CreateProvider } from "@/context/create-context"
 import { Callback } from "@/pages/callback/callback"

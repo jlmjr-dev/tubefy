@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /** The indigo rotated-square glyph that stands in for the Tubefy logo. */
 export function Diamond({

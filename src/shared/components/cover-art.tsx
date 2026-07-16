@@ -1,7 +1,7 @@
 import { useState } from "react"
 
-import { cn } from "@/lib/utils"
-import { coverGradient, monogram } from "@/lib/cover"
+import { cn } from "@/shared/lib/utils"
+import { coverGradient, monogram } from "@/shared/lib/cover"
 
 /**
  * A grayscale cover tile: real album art / video thumbnail when we have a URL,

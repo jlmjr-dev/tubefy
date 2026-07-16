@@ -1,4 +1,4 @@
-import { formatMs } from "@/lib/format"
+import { formatMs } from "@/shared/lib/format"
 import type { Playlist, Track } from "@/lib/types"
 import { getSpotifyToken } from "@/lib/spotify/auth"
 

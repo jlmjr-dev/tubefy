@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 
-import { isGoogleConfigured, isSpotifyConfigured } from "@/lib/config"
+import { isGoogleConfigured, isSpotifyConfigured } from "@/shared/lib/config"
 import type { PlatformProfile } from "@/lib/auth/types"
 import {
   beginSpotifyLogin,

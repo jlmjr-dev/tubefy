@@ -1,9 +1,9 @@
 import { ArrowRight, Check, ChevronDown, VideoOff } from "lucide-react"
 
-import { CoverArt } from "@/components/cover-art"
-import { Eyebrow } from "@/components/eyebrow"
+import { CoverArt } from "@/shared/components/cover-art"
+import { Eyebrow } from "@/shared/components/eyebrow"
 import type { Mapping, VideoCandidate } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/lib/utils"
 
 /** One alternate-video card in the inline remap panel. */
 function CandidateCard({

@@ -1,5 +1,5 @@
-import { BackButton } from "@/components/back-button"
-import { cn } from "@/lib/utils"
+import { BackButton } from "@/shared/components/back-button"
+import { cn } from "@/shared/lib/utils"
 
 /**
  * The shared header for the browse-style screens (Watch, Create pick, Review): a

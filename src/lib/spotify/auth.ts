@@ -1,11 +1,11 @@
-import { config } from "@/lib/config"
+import { config } from "@/shared/lib/config"
 import {
   clearTokens,
   isExpired,
   loadTokens,
   saveTokens,
   type StoredTokens,
-} from "@/lib/auth/storage"
+} from "@/shared/lib/storage"
 import type { PlatformProfile } from "@/lib/auth/types"
 
 /**
