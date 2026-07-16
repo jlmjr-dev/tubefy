@@ -1,21 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect } from "react"
 import { ArrowRight, AudioLines, MonitorPlay } from "lucide-react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 
 import { BackButton } from "@/shared/components/back-button"
 import { Eyebrow } from "@/shared/components/eyebrow"
-import { useCreate } from "@/features/create/create-context"
-import { config } from "@/shared/lib/config"
-import { messageOf } from "@/shared/lib/errors"
-import { matchTrack } from "@/services/conversion/match-track"
-import { getSpotifyPlaylistName, getSpotifyTracks } from "@/services/spotify/client"
-import type { Confidence, Mapping } from "@/domain/types"
-
-interface LogEntry {
-  title: string
-  yt: string
-  confidence: Confidence
-}
+import { useMatchingJob } from "@/features/create/hooks/use-matching-job"
 
 /** Bridge node (Spotify / YouTube) flanking the sweeping connector line. */
 function BridgeNode({
@@ -50,89 +39,21 @@ export function Matching() {
   const location = useLocation()
   const [params] = useSearchParams()
   const listId = params.get("list") ?? ""
-  const { setSource, setMappings } = useCreate()
-
   const initialName = (location.state as { name?: string } | null)?.name ?? ""
-  const [name, setName] = useState(initialName)
-  const [progress, setProgress] = useState(0)
-  const [log, setLog] = useState<LogEntry[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const started = useRef(false)
-  const advanceTimer = useRef<number | null>(null)
 
+  const { name, progress, log, error, done } = useMatchingJob(listId, initialName)
+
+  // No playlist selected: bounce back to the picker.
   useEffect(() => {
-    if (started.current) return
-    started.current = true
-    if (!listId) {
-      navigate("/create", { replace: true })
-      return
-    }
+    if (!listId) navigate("/create", { replace: true })
+  }, [listId, navigate])
 
-    async function run() {
-      try {
-        const playlistName = initialName || (await getSpotifyPlaylistName(listId))
-        setName(playlistName)
-        const tracks = await getSpotifyTracks(listId, config.maxTracksPerConversion)
-        if (tracks.length === 0) {
-          setError("This playlist has no tracks to convert.")
-          return
-        }
-        setSource(listId, playlistName)
-
-        // Match tracks with a small pool of concurrent workers instead of one
-        // at a time. A modest pool (4) keeps the pipe full without hammering
-        // YouTube's rate limits. Results stay in track order; the log streams as
-        // each finishes.
-        const results: Mapping[] = new Array(tracks.length)
-        let completed = 0
-        let cursor = 0
-        let firstError: string | null = null
-
-        async function worker() {
-          for (let i = cursor++; i < tracks.length; i = cursor++) {
-            const track = tracks[i]
-            let mapping: Mapping
-            try {
-              mapping = await matchTrack(track)
-            } catch (err) {
-              // One failed lookup shouldn't sink the whole batch, but keep the
-              // real reason so we can surface it instead of a silent "no match".
-              if (!firstError) {
-                firstError = messageOf(err)
-              }
-              mapping = { track, candidates: [], chosenIndex: 0, confidence: "review" }
-            }
-            results[i] = mapping
-            completed += 1
-            setLog((entries) => [
-              ...entries,
-              {
-                title: track.title,
-                yt: mapping.candidates[0]?.title ?? "No match found",
-                confidence: mapping.confidence,
-              },
-            ])
-            setProgress(Math.round((completed / tracks.length) * 100))
-          }
-        }
-
-        await Promise.all(
-          Array.from({ length: Math.min(4, tracks.length) }, worker)
-        )
-        setMappings(results, firstError)
-        advanceTimer.current = window.setTimeout(() => navigate("/create/review"), 600)
-      } catch (err) {
-        setError(messageOf(err, "Matching failed."))
-      }
-    }
-
-    void run()
-    return () => {
-      if (advanceTimer.current) window.clearTimeout(advanceTimer.current)
-    }
-    // Run the matching job exactly once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Auto-advance to review a beat after matching completes.
+  useEffect(() => {
+    if (!done) return
+    const timer = window.setTimeout(() => navigate("/create/review"), 600)
+    return () => window.clearTimeout(timer)
+  }, [done, navigate])
 
   if (error) {
     return (
