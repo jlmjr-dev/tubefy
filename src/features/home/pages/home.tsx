@@ -3,14 +3,12 @@ import { useNavigate } from "react-router-dom"
 
 import { ConvertPill, PlayBadge } from "@/shared/components/cover-overlays"
 import { Eyebrow } from "@/shared/components/eyebrow"
-import { PlaylistCard } from "@/shared/components/playlist-card"
-import { PlaylistGrid } from "@/shared/components/playlist-grid"
-import { SectionHeading } from "@/shared/components/section-heading"
 import { TopBar } from "@/shared/components/top-bar"
 import { useAuth } from "@/features/auth/auth-context"
 import { useSpotifyPlaylists } from "@/services/queries/use-spotify-playlists"
 import { useYouTubePlaylists } from "@/services/queries/use-youtube-playlists"
 import { ActionCard } from "@/features/home/components/action-card"
+import { PlaylistSection } from "@/features/home/components/playlist-section"
 
 function greetingForNow(): string {
   const hour = new Date().getHours()
@@ -18,13 +16,6 @@ function greetingForNow(): string {
   if (hour < 18) return "Good afternoon"
   return "Good evening"
 }
-
-const compactCard = {
-  aspectClassName: "aspect-[16/10]",
-  monogramClassName: "text-[34px]",
-  liftClassName: "hover:-translate-y-[3px]",
-  titleClassName: "text-[11px] tracking-[0.06em]",
-} as const
 
 /** Home dashboard: entry point to Watch (YouTube) and Create (Spotify). */
 export function Home() {
@@ -85,65 +76,35 @@ export function Home() {
             />
           </div>
 
-          <SectionHeading label="Jump back in" platform="youtube" animationDelay="0.2s" />
-          <PlaylistGrid
+          <PlaylistSection
+            label="Jump back in"
+            platform="youtube"
+            animationDelay="0.2s"
             state={youtubePlaylists}
-            columnMin="178px"
-            aspectClassName="aspect-[16/10]"
             onReload={youtubePlaylists.refetch}
             emptyLabel="No YouTube playlists yet."
-          >
-            {(items) =>
-              items.map((playlist, i) => (
-                <PlaylistCard
-                  key={playlist.id}
-                  {...compactCard}
-                  seed={playlist.title}
-                  thumbnailUrl={playlist.thumbnailUrl}
-                  title={playlist.title}
-                  meta={`${playlist.itemCount} videos`}
-                  animationDelay={`${i * 0.03}s`}
-                  overlay={<PlayBadge />}
-                  onClick={() => navigate(`/player?list=${playlist.id}`)}
-                />
-              ))
-            }
-          </PlaylistGrid>
+            meta={(playlist) => `${playlist.itemCount} videos`}
+            overlay={<PlayBadge />}
+            onPick={(playlist) => navigate(`/player?list=${playlist.id}`)}
+          />
 
           <div className="h-[clamp(28px,4vw,44px)]" />
 
-          <SectionHeading
+          <PlaylistSection
             label="Ready to convert"
             platform="spotify"
             animationDelay="0.24s"
-          />
-          <PlaylistGrid
             state={spotifyPlaylists}
-            columnMin="178px"
-            aspectClassName="aspect-[16/10]"
             onReload={spotifyPlaylists.refetch}
             emptyLabel="No Spotify playlists yet."
-          >
-            {(items) =>
-              items.map((playlist, i) => (
-                <PlaylistCard
-                  key={playlist.id}
-                  {...compactCard}
-                  seed={playlist.title}
-                  thumbnailUrl={playlist.thumbnailUrl}
-                  title={playlist.title}
-                  meta={`${playlist.itemCount} songs`}
-                  animationDelay={`${i * 0.03}s`}
-                  overlay={<ConvertPill />}
-                  onClick={() =>
-                    navigate(`/create/matching?list=${playlist.id}`, {
-                      state: { name: playlist.title },
-                    })
-                  }
-                />
-              ))
+            meta={(playlist) => `${playlist.itemCount} songs`}
+            overlay={<ConvertPill />}
+            onPick={(playlist) =>
+              navigate(`/create/matching?list=${playlist.id}`, {
+                state: { name: playlist.title },
+              })
             }
-          </PlaylistGrid>
+          />
         </div>
       </div>
     </div>
