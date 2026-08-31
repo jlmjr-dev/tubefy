@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useRef } from "react"
+import { useMemo, useRef } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 
 import { useYouTubePlaylistItems } from "@/services/queries/use-youtube-playlist-items"
 import { useAutoHideChrome } from "@/features/player/hooks/use-auto-hide-chrome"
+import { useFullscreen } from "@/features/player/hooks/use-fullscreen"
 import { usePlaybackQueue } from "@/features/player/hooks/use-playback-queue"
 import { useVolume } from "@/features/player/hooks/use-volume"
 import { useYouTubePlayer } from "@/features/player/hooks/use-youtube-player"
@@ -43,10 +44,7 @@ export function Player() {
 
   const { volume, changeVolume, toggleMute } = useVolume(setVolume)
   const { chromeVisible, showChrome, hideChrome } = useAutoHideChrome()
-
-  const maximize = useCallback(() => {
-    stageRef.current?.requestFullscreen?.().catch(() => {})
-  }, [])
+  const { fullscreen, toggleFullscreen } = useFullscreen(stageRef)
 
   const chromeStyle = {
     opacity: chromeVisible ? 1 : 0,
@@ -96,11 +94,12 @@ export function Player() {
             volume,
             repeat,
             shuffle,
+            fullscreen,
             onVolumeChange: changeVolume,
             onToggleMute: toggleMute,
             onToggleRepeat: playback.toggleRepeat,
             onToggleShuffle: playback.toggleShuffle,
-            onMaximize: maximize,
+            onToggleFullscreen: toggleFullscreen,
           }}
         />
       </div>
