@@ -1,5 +1,6 @@
 import {
   Maximize,
+  Minimize,
   Pause,
   Play,
   Repeat,
@@ -29,11 +30,12 @@ export interface OptionControls {
   volume: number
   repeat: boolean
   shuffle: boolean
+  fullscreen: boolean
   onVolumeChange: (volume: number) => void
   onToggleMute: () => void
   onToggleRepeat: () => void
   onToggleShuffle: () => void
-  onMaximize: () => void
+  onToggleFullscreen: () => void
 }
 
 function GhostButton({
@@ -149,11 +151,12 @@ function Options({
   volume,
   repeat,
   shuffle,
+  fullscreen,
   onVolumeChange,
   onToggleMute,
   onToggleRepeat,
   onToggleShuffle,
-  onMaximize,
+  onToggleFullscreen,
 }: OptionControls) {
   return (
     <div className="text-fg-muted flex items-center gap-[clamp(8px,1.4vw,16px)]">
@@ -182,8 +185,16 @@ function Options({
         onVolumeChange={onVolumeChange}
         onToggleMute={onToggleMute}
       />
-      <GhostButton label="Fullscreen" onClick={onMaximize}>
-        <Maximize className="size-[17px]" />
+      <GhostButton
+        label={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+        active={fullscreen}
+        onClick={onToggleFullscreen}
+      >
+        {fullscreen ? (
+          <Minimize className="size-[17px]" />
+        ) : (
+          <Maximize className="size-[17px]" />
+        )}
       </GhostButton>
     </div>
   )
